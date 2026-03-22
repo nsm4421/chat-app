@@ -1,16 +1,18 @@
 import 'package:domodachi/features/chat/domain/repository/chat_repository.dart';
+import 'package:domodachi/features/chat/domain/use_case/scenario/enter_chat_room_presence_use_case.dart';
 import 'package:domodachi/features/chat/domain/use_case/scenario/create_remote_chat_room_use_case.dart';
 import 'package:domodachi/features/chat/domain/use_case/scenario/delete_chat_room_use_case.dart';
 import 'package:domodachi/features/chat/domain/use_case/scenario/delete_draft_chat_room_use_case.dart';
+import 'package:domodachi/features/chat/domain/use_case/scenario/leave_chat_room_presence_use_case.dart';
 import 'package:domodachi/features/chat/domain/use_case/scenario/fetch_discover_chat_rooms_use_case.dart';
 import 'package:domodachi/features/chat/domain/use_case/scenario/fetch_my_group_chat_rooms_use_case.dart';
 import 'package:domodachi/features/chat/domain/use_case/scenario/fetch_my_private_chat_rooms_use_case.dart';
 import 'package:domodachi/features/chat/domain/use_case/scenario/get_draft_chat_room_use_case.dart';
 import 'package:domodachi/features/chat/domain/use_case/scenario/get_chat_room_use_case.dart';
-import 'package:domodachi/features/chat/domain/use_case/scenario/join_chat_room_use_case.dart';
-import 'package:domodachi/features/chat/domain/use_case/scenario/leave_chat_room_use_case.dart';
 import 'package:domodachi/features/chat/domain/use_case/scenario/save_draft_chat_room_use_case.dart';
 import 'package:domodachi/features/chat/domain/use_case/scenario/update_chat_room_use_case.dart';
+import 'package:domodachi/features/chat/domain/use_case/scenario/watch_chat_room_presence_events_use_case.dart';
+import 'package:domodachi/features/chat/domain/use_case/scenario/watch_chat_room_presence_use_case.dart';
 import 'package:injectable/injectable.dart';
 
 @lazySingleton
@@ -37,17 +39,19 @@ class ChatUseCases {
   late final UpdateChatRoomUseCase _updateChatRoom = UpdateChatRoomUseCase(
     _repository,
   );
-  late final JoinChatRoomUseCase _joinChatRoom = JoinChatRoomUseCase(
-    _repository,
-  );
-  late final LeaveChatRoomUseCase _leaveChatRoom = LeaveChatRoomUseCase(
-    _repository,
-  );
   late final DeleteChatRoomUseCase _deleteChatRoom = DeleteChatRoomUseCase(
     _repository,
   );
   late final DeleteDraftChatRoomUseCase _deleteDraftChatRoom =
       DeleteDraftChatRoomUseCase(_repository);
+  late final EnterChatRoomPresenceUseCase _enterChatRoomPresence =
+      EnterChatRoomPresenceUseCase(_repository);
+  late final LeaveChatRoomPresenceUseCase _leaveChatRoomPresence =
+      LeaveChatRoomPresenceUseCase(_repository);
+  late final WatchChatRoomPresenceUseCase _watchChatRoomPresence =
+      WatchChatRoomPresenceUseCase(_repository);
+  late final WatchChatRoomPresenceEventsUseCase _watchChatRoomPresenceEvents =
+      WatchChatRoomPresenceEventsUseCase(_repository);
 
   FetchDiscoverChatRoomsUseCase get fetchDiscoverChatRooms =>
       _fetchDiscoverChatRooms;
@@ -61,8 +65,14 @@ class ChatUseCases {
   CreateRemoteChatRoomUseCase get createRemoteChatRoom => _createRemoteChatRoom;
   CreateRemoteChatRoomUseCase get createChatRoom => _createChatRoom;
   UpdateChatRoomUseCase get updateChatRoom => _updateChatRoom;
-  JoinChatRoomUseCase get joinChatRoom => _joinChatRoom;
-  LeaveChatRoomUseCase get leaveChatRoom => _leaveChatRoom;
   DeleteChatRoomUseCase get deleteChatRoom => _deleteChatRoom;
   DeleteDraftChatRoomUseCase get deleteDraftChatRoom => _deleteDraftChatRoom;
+  EnterChatRoomPresenceUseCase get enterChatRoomPresence =>
+      _enterChatRoomPresence;
+  LeaveChatRoomPresenceUseCase get leaveChatRoomPresence =>
+      _leaveChatRoomPresence;
+  WatchChatRoomPresenceUseCase get watchChatRoomPresence =>
+      _watchChatRoomPresence;
+  WatchChatRoomPresenceEventsUseCase get watchChatRoomPresenceEvents =>
+      _watchChatRoomPresenceEvents;
 }

@@ -32,6 +32,8 @@ Prefer these rules when making code changes in this repository.
 - Use table-oriented names in data source methods when appropriate:
   `insert`, `update`, `delete`, `fetch`, `get`.
 - Reserve business-facing verbs such as `join`, `leave`, `complete`, `start` for repository or use case layers unless the data source truly owns that concept.
+- If an entity supports soft delete, verify where deleted rows are excluded before writing fetch logic.
+- Prefer hiding soft-deleted rows in the read view itself; if no read view exists, fetch queries must explicitly exclude deleted rows.
 
 ## Dependency Injection
 
@@ -70,6 +72,7 @@ Prefer these rules when making code changes in this repository.
 ## State Models
 
 - Prefer `freezed` for feature state/event/request models that benefit from copy, unions, or equality.
+- If a model needs generated `copyWith` or `fromJson`, prefer `freezed` instead of hand-writing those methods.
 - If a `freezed` model is not a union, prefer the field-declared class style with `final` fields and a normal constructor.
 - When using `freezed` for a non-union model, do not use `const factory`; use the regular constructor style instead.
 - Reserve `const factory` union cases for actual sum types such as event/state/request variants.

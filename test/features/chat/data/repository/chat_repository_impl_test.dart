@@ -1,7 +1,12 @@
 import 'package:domodachi/features/chat/core/value_objects/chat_room_enums.dart';
 import 'package:domodachi/features/chat/data/data_source/local/chat_room_draft_local_data_source.dart';
-import 'package:domodachi/features/chat/data/data_source/member/chat_room_member_data_source.dart';
+import 'package:domodachi/features/chat/data/data_source/message/chat_message_data_source.dart';
+import 'package:domodachi/features/chat/data/data_source/presence/chat_room_presence_data_source.dart';
 import 'package:domodachi/features/chat/data/data_source/room/chat_room_data_source.dart';
+import 'package:domodachi/features/chat/data/model/chat_message_model.dart';
+import 'package:domodachi/features/chat/data/model/chat_message_overview_model.dart';
+import 'package:domodachi/features/chat/data/model/chat_room_presence_event_model.dart';
+import 'package:domodachi/features/chat/data/model/chat_room_presence_model.dart';
 import 'package:domodachi/features/chat/data/model/chat_room_draft_model.dart';
 import 'package:domodachi/features/chat/data/model/chat_room_model.dart';
 import 'package:domodachi/features/chat/data/repository/chat_repository_impl.dart';
@@ -9,18 +14,21 @@ import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   late _FakeChatRoomDataSource chatRoomDataSource;
-  late _FakeChatRoomMemberDataSource chatRoomMemberDataSource;
   late _FakeChatRoomDraftLocalDataSource chatRoomDraftLocalDataSource;
+  late _FakeChatMessageDataSource chatMessageDataSource;
+  late _FakeChatRoomPresenceDataSource chatRoomPresenceDataSource;
   late ChatRepositoryImpl repository;
 
   setUp(() {
     chatRoomDataSource = _FakeChatRoomDataSource();
-    chatRoomMemberDataSource = _FakeChatRoomMemberDataSource();
     chatRoomDraftLocalDataSource = _FakeChatRoomDraftLocalDataSource();
+    chatMessageDataSource = _FakeChatMessageDataSource();
+    chatRoomPresenceDataSource = _FakeChatRoomPresenceDataSource();
     repository = ChatRepositoryImpl(
       chatRoomDataSource,
-      chatRoomMemberDataSource,
       chatRoomDraftLocalDataSource,
+      chatMessageDataSource,
+      chatRoomPresenceDataSource,
     );
   });
 
@@ -59,6 +67,49 @@ void main() {
       expect(chatRoomDraftLocalDataSource.deleteCallCount, 1);
       expect(room.id, 'remote-room-id');
       expect(room.status, ChatRoomStatus.open);
+    });
+  });
+
+  group('messages', () {
+    test('maps fetched overview messages into domain entities', () async {
+      final messages = await repository.fetchChatMessages(
+        chatRoomId: 'room-id',
+      );
+
+      expect(messages, hasLength(1));
+      expect(messages.first.senderDisplayName, 'Mina');
+      expect(messages.first.content, '안녕하세요');
+    });
+
+    test('sends message through message datasource', () async {
+      final message = await repository.sendChatMessage(
+        chatRoomId: 'room-id',
+        content: '반가워요',
+      );
+
+      expect(chatMessageDataSource.insertCallCount, 1);
+      expect(message.content, '반가워요');
+    });
+
+    test('maps presence stream into domain entities', () async {
+      final presences = await repository
+          .watchChatRoomPresence(chatRoomId: 'room-id')
+          .first;
+
+      expect(presences, hasLength(1));
+      expect(presences.first.userId, 'user-1');
+      expect(presences.first.displayName, 'Mina');
+    });
+
+    test('forwards enter presence to presence datasource', () async {
+      await repository.enterChatRoomPresence(
+        chatRoomId: 'room-id',
+        userId: 'user-1',
+        displayName: 'Mina',
+      );
+
+      expect(chatRoomPresenceDataSource.enterCallCount, 1);
+      expect(chatRoomPresenceDataSource.lastEnteredRoomId, 'room-id');
     });
   });
 }
@@ -129,14 +180,6 @@ final class _FakeChatRoomDataSource implements ChatRoomDataSource {
   }) async {}
 }
 
-final class _FakeChatRoomMemberDataSource implements ChatRoomMemberDataSource {
-  @override
-  Future<void> delete({required String chatRoomId}) async {}
-
-  @override
-  Future<void> insert({required String chatRoomId}) async {}
-}
-
 final class _FakeChatRoomDraftLocalDataSource
     implements ChatRoomDraftLocalDataSource {
   ChatRoomDraftModel? savedDraft;
@@ -154,5 +197,102 @@ final class _FakeChatRoomDraftLocalDataSource
   @override
   Future<void> saveDraft(ChatRoomDraftModel draft) async {
     savedDraft = draft;
+  }
+}
+
+final class _FakeChatMessageDataSource implements ChatMessageDataSource {
+  int insertCallCount = 0;
+
+  @override
+  Future<Iterable<ChatMessageOverviewModel>> fetchMessages({
+    required String chatRoomId,
+    int limit = 50,
+    String? cursor,
+  }) async {
+    return [
+      ChatMessageOverviewModel(
+        id: 'message-id',
+        chatRoomId: chatRoomId,
+        senderId: 'user-1',
+        content: '안녕하세요',
+        createdAt: DateTime(2026, 3, 22, 18),
+        senderDisplayName: 'Mina',
+      ),
+    ];
+  }
+
+  @override
+  Future<ChatMessageModel> insert({
+    required String chatRoomId,
+    required String content,
+  }) async {
+    insertCallCount += 1;
+    return ChatMessageModel(
+      id: 'new-message-id',
+      chatRoomId: chatRoomId,
+      senderId: 'user-1',
+      content: content,
+      createdAt: DateTime(2026, 3, 22, 18, 1),
+    );
+  }
+
+  @override
+  Future<void> softDelete({required String chatMessageId}) async {}
+
+  @override
+  Stream<ChatMessageOverviewModel> watchNewMessages({
+    required String chatRoomId,
+  }) {
+    return const Stream.empty();
+  }
+}
+
+final class _FakeChatRoomPresenceDataSource
+    implements ChatRoomPresenceDataSource {
+  int enterCallCount = 0;
+  String? lastEnteredRoomId;
+
+  @override
+  Future<void> enter({
+    required String chatRoomId,
+    required String userId,
+    String? displayName,
+    String? avatarUrl,
+  }) async {
+    enterCallCount += 1;
+    lastEnteredRoomId = chatRoomId;
+  }
+
+  @override
+  Future<void> leave({required String chatRoomId}) async {}
+
+  @override
+  Stream<List<ChatRoomPresenceModel>> watchPresence({
+    required String chatRoomId,
+  }) {
+    return Stream<List<ChatRoomPresenceModel>>.value([
+      ChatRoomPresenceModel(
+        userId: 'user-1',
+        presenceRef: 'presence-1',
+        displayName: 'Mina',
+        onlineAt: DateTime(2026, 3, 23, 10),
+      ),
+    ]);
+  }
+
+  @override
+  Stream<ChatRoomPresenceEventModel> watchPresenceEvents({
+    required String chatRoomId,
+  }) {
+    return Stream<ChatRoomPresenceEventModel>.value(
+      ChatRoomPresenceEventModel(
+        type: ChatRoomPresenceEventType.joined,
+        presence: ChatRoomPresenceModel(
+          userId: 'user-1',
+          presenceRef: 'presence-1',
+          displayName: 'Mina',
+        ),
+      ),
+    );
   }
 }

@@ -1,6 +1,7 @@
 import 'package:domodachi/core/error/failure.dart';
 import 'package:domodachi/core/extensions/num_extension.dart';
 import 'package:domodachi/core/extensions/string_extension.dart';
+import 'package:domodachi/core/widgets/debounce/debounced_buttons.dart';
 import 'package:domodachi/features/auth/domain/validation/auth_input_validator.dart';
 import 'package:domodachi/features/auth/presentation/cubit/base/auth_request_state.dart';
 import 'package:domodachi/features/auth/presentation/cubit/profile_setup/profile_setup_cubit.dart';
@@ -89,7 +90,7 @@ class _ProfileSetupViewState extends State<_ProfileSetupView> {
             subtitle: email.isEmpty
                 ? '서비스 이용을 시작하기 전에 표시 이름을 정해 주세요.'
                 : '$email 계정에 표시 이름을 저장합니다.',
-            footer: TextButton(
+            footer: DebouncedTextButton(
               onPressed: _isRestarting ? null : _restartWithAnotherEmail,
               child: Text(_isRestarting ? '이동 중...' : '다른 이메일로 다시 시작'),
             ),
@@ -109,7 +110,7 @@ class _ProfileSetupViewState extends State<_ProfileSetupView> {
                         ),
                       ),
                       20.v,
-                      FilledButton(
+                      DebouncedFilledButton(
                         onPressed: requestState.isLoading || _isRestarting
                             ? null
                             : _submit,

@@ -23,6 +23,16 @@ Prefer these rules when making code changes in this repository.
 - Data sources should return data models, not Supabase SDK models.
 - Repositories should map data models into domain entities and expose only domain types.
 
+## Data Source Rule
+
+- Data source methods should prefer direct named parameters over one-off request param models when the payload is only used at the data source boundary.
+- Keep data source impl classes focused on SDK/table call flow.
+- Shared helper logic such as exception guards, SDK model mapping, current-user/session lookup, and response-to-model conversion should live in a separate `...data_source_handler.dart` mixin.
+- Name handler files/classes consistently as `<provider>_<feature>_data_source_handler.dart` and `<Provider><Feature>DataSourceHandler`.
+- Use table-oriented names in data source methods when appropriate:
+  `insert`, `update`, `delete`, `fetch`, `get`.
+- Reserve business-facing verbs such as `join`, `leave`, `complete`, `start` for repository or use case layers unless the data source truly owns that concept.
+
 ## Dependency Injection
 
 - Use `injectable` + `get_it` for app-level wiring.
@@ -47,6 +57,8 @@ Prefer these rules when making code changes in this repository.
 - Router assembly lives in `lib/app/router/app_router.dart`.
 - App-wide navigation policy such as auth redirects belongs in `AppRoute`.
 - Do not scatter redirect logic across pages.
+- Prefer `go_router` navigation APIs consistently.
+- For closing routes, use `context.pop(...)`; inside dialog builders, use the dialog-scoped context with `dialogContext.pop(...)`.
 
 ## Theme
 
@@ -59,6 +71,7 @@ Prefer these rules when making code changes in this repository.
 
 - Prefer `freezed` for feature state/event/request models that benefit from copy, unions, or equality.
 - If a `freezed` model is not a union, prefer the field-declared class style with `final` fields and a normal constructor.
+- When using `freezed` for a non-union model, do not use `const factory`; use the regular constructor style instead.
 - Reserve `const factory` union cases for actual sum types such as event/state/request variants.
 - Generated files are not edited manually.
 - If a model does not need unions or copy semantics, a simple `final class` is acceptable.

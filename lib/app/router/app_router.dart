@@ -8,6 +8,9 @@ import 'package:domodachi/features/auth/presentation/pages/profile_setup_page.da
 import 'package:domodachi/features/auth/presentation/pages/sign_in_page.dart';
 import 'package:domodachi/features/auth/presentation/pages/sign_up_page.dart';
 import 'package:domodachi/features/auth/presentation/pages/splash_page.dart';
+import 'package:domodachi/features/chat/domain/entity/chat_room.dart';
+import 'package:domodachi/features/chat/presentation/pages/create/create_chat_room_page.dart';
+import 'package:domodachi/features/chat/presentation/pages/modify/modify_chat_room_page.dart';
 import 'package:domodachi/features/home/home_page.dart';
 import 'package:domodachi/features/settings/settings_page.dart';
 import 'package:go_router/go_router.dart';
@@ -30,11 +33,7 @@ class AppRoute {
     refreshListenable: _refreshNotifier,
     redirect: (context, state) {
       final location = state.uri.path;
-      final isAuthArea =
-          location == AppRoutePath.auth ||
-          location == AppRoutePath.signIn ||
-          location == AppRoutePath.signUp ||
-          location == AppRoutePath.forgotPassword;
+      final isAuthArea = AppRoutePath.isAuthArea(location);
       final isSplash = location == AppRoutePath.splash;
       final isProfileSetup = location == AppRoutePath.profileSetup;
 
@@ -76,6 +75,15 @@ class AppRoute {
       GoRoute(
         path: AppRoutePath.home,
         builder: (context, state) => const HomePage(),
+      ),
+      GoRoute(
+        path: AppRoutePath.createChatRoom,
+        builder: (context, state) => const CreateChatRoomPage(),
+      ),
+      GoRoute(
+        path: AppRoutePath.modifyChatRoom,
+        builder: (context, state) =>
+            ModifyChatRoomPage(room: state.extra! as ChatRoom),
       ),
       GoRoute(
         path: AppRoutePath.settings,

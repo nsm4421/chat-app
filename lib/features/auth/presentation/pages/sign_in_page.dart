@@ -1,6 +1,7 @@
 import 'package:domodachi/app/router/app_route_path.dart';
 import 'package:domodachi/core/extensions/num_extension.dart';
 import 'package:domodachi/core/extensions/string_extension.dart';
+import 'package:domodachi/core/widgets/debounce/debounced_buttons.dart';
 import 'package:domodachi/features/auth/domain/validation/auth_input_validator.dart';
 import 'package:domodachi/features/auth/presentation/cubit/base/auth_request_state.dart';
 import 'package:domodachi/features/auth/presentation/cubit/sign_in/sign_in_cubit.dart';
@@ -103,7 +104,7 @@ class _SignInViewState extends State<_SignInView> {
                 ),
               ),
               20.v,
-              FilledButton(
+              DebouncedFilledButton(
                 onPressed: state.isLoading ? null : _submit,
                 child: Text(state.isLoading ? '로그인 중...' : '로그인'),
               ),

@@ -13,8 +13,10 @@ class MainApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiBlocProvider(
       providers: [
-        BlocProvider.value(value: GetIt.instance<AuthSessionCubit>()),
-        BlocProvider.value(value: GetIt.instance<ThemeModeCubit>()),
+        BlocProvider.value(
+          value: GetIt.instance<AuthSessionCubit>()..refresh(),
+        ),
+        BlocProvider.value(value: GetIt.instance<ThemeModeCubit>()..init()),
       ],
       child: BlocBuilder<ThemeModeCubit, ThemeMode>(
         builder: (context, themeMode) {

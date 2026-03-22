@@ -1,14 +1,13 @@
-import 'package:domodachi/features/auth/data/data_source/supabase_auth_data_source_error_handler.dart';
+import 'package:domodachi/features/auth/data/data_source/supabase_auth_data_source_handler.dart';
 import 'package:domodachi/features/auth/data/exception/auth_data_exception.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
-class _TestSupabaseAuthDataSourceErrorHandler
-    with SupabaseAuthDataSourceErrorHandler {}
+class _TestSupabaseAuthDataSourceHandler with SupabaseAuthDataSourceHandler {}
 
 void main() {
-  group('SupabaseAuthDataSourceErrorHandler', () {
-    final handler = _TestSupabaseAuthDataSourceErrorHandler();
+  group('SupabaseAuthDataSourceHandler', () {
+    final handler = _TestSupabaseAuthDataSourceHandler();
 
     test('maps auth exceptions to auth data exception messages', () async {
       await expectLater(
@@ -42,6 +41,21 @@ void main() {
         );
       },
     );
+
+    test('passes through auth data exception messages', () async {
+      await expectLater(
+        () => handler.guardDeleteAccountRequest<void>(
+          () async => throw const AuthDataException('직접 지정한 메시지'),
+        ),
+        throwsA(
+          isA<AuthDataException>().having(
+            (error) => error.message,
+            'message',
+            '직접 지정한 메시지',
+          ),
+        ),
+      );
+    });
 
     test('uses fallback message for unknown delete account errors', () async {
       await expectLater(

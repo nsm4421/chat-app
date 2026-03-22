@@ -1,4 +1,5 @@
 import 'package:domodachi/core/error/failure.dart';
+import 'package:domodachi/core/widgets/debounce/debounced_buttons.dart';
 import 'package:domodachi/features/auth/presentation/cubit/session/auth_session_cubit.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -35,7 +36,7 @@ class _AuthSignOutButtonState extends State<AuthSignOutButton> {
 
   @override
   Widget build(BuildContext context) {
-    return OutlinedButton(
+    return DebouncedOutlinedButton(
       onPressed: _isSubmitting ? null : _handlePressed,
       child: Text(_isSubmitting ? 'Signing out...' : 'Sign out'),
     );

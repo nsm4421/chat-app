@@ -10,5 +10,5 @@ import 'injection.config.dart';
 )
 Future<void> configureDependencies() async {
   await GetIt.instance.reset();
-  init(GetIt.instance);
+  await init(GetIt.instance);
 }

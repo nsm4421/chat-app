@@ -1,7 +1,9 @@
+import 'package:domodachi/core/widgets/debounce/debounced_buttons.dart';
 import 'package:domodachi/features/auth/presentation/cubit/account/delete_account_cubit.dart';
 import 'package:domodachi/features/auth/presentation/cubit/base/auth_request_state.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 
 class DeleteAccountButton extends StatelessWidget {
   const DeleteAccountButton({super.key});
@@ -10,7 +12,7 @@ class DeleteAccountButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocBuilder<DeleteAccountCubit, AuthRequestState>(
       builder: (context, state) {
-        return FilledButton.tonal(
+        return DebouncedFilledTonalButton(
           onPressed: state.isLoading
               ? null
               : () => _showDeleteAccountDialog(context),
@@ -33,11 +35,11 @@ class DeleteAccountButton extends StatelessWidget {
           content: const Text('탈퇴하면 프로필과 로그인 정보가 함께 삭제되고 복구할 수 없어요.'),
           actions: [
             TextButton(
-              onPressed: () => Navigator.of(dialogContext).pop(false),
+              onPressed: () => dialogContext.pop(false),
               child: const Text('취소'),
             ),
             FilledButton(
-              onPressed: () => Navigator.of(dialogContext).pop(true),
+              onPressed: () => dialogContext.pop(true),
               style: FilledButton.styleFrom(
                 backgroundColor: Theme.of(dialogContext).colorScheme.error,
                 foregroundColor: Theme.of(dialogContext).colorScheme.onError,

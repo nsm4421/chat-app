@@ -1,4 +1,5 @@
 import 'package:domodachi/app/router/app_route_path.dart';
+import 'package:domodachi/core/widgets/debounce/debounced_buttons.dart';
 import 'package:domodachi/features/auth/domain/validation/auth_input_validator.dart';
 import 'package:domodachi/features/auth/presentation/cubit/base/auth_request_state.dart';
 import 'package:domodachi/features/auth/presentation/cubit/password_reset/password_reset_cubit.dart';
@@ -83,7 +84,7 @@ class _ForgotPasswordViewState extends State<_ForgotPasswordView> {
                 ),
               ),
               const SizedBox(height: 20),
-              FilledButton(
+              DebouncedFilledButton(
                 onPressed: state.isLoading ? null : _submit,
                 child: Text(state.isLoading ? '전송 중...' : '재설정 메일 보내기'),
               ),

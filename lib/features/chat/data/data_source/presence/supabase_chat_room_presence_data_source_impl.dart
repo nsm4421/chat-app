@@ -19,19 +19,19 @@ class SupabaseChatRoomPresenceDataSourceImpl
       <String, _PresenceRoomSession>{};
 
   @override
-  Future<void> enter({
-    required String chatRoomId,
-    required String userId,
-    String? displayName,
-    String? avatarUrl,
-  }) async {
-    requireCurrentUserId(_client);
+  Future<void> enter(String chatRoomId) async {
+    final currentUser = _client.auth.currentUser;
+    final metadata = currentUser?.userMetadata ?? <String, dynamic>{};
+
+    if (currentUser == null) {
+      throw const ChatDataException('로그인이 필요해요. 다시 시도해 주세요.');
+    }
 
     final session = _ensureSession(chatRoomId);
     session.selfPayload = <String, dynamic>{
-      'user_id': userId,
-      'display_name': displayName,
-      'avatar_url': avatarUrl,
+      'user_id': currentUser.id,
+      'display_name': metadata['display_name'],
+      'avatar_url': metadata['avatar_url'],
       'online_at': DateTime.now().toIso8601String(),
     };
 
@@ -41,7 +41,7 @@ class SupabaseChatRoomPresenceDataSourceImpl
   }
 
   @override
-  Future<void> leave({required String chatRoomId}) async {
+  Future<void> leave(String chatRoomId) async {
     final session = _sessions[chatRoomId];
     if (session == null) {
       return;
@@ -52,16 +52,12 @@ class SupabaseChatRoomPresenceDataSourceImpl
   }
 
   @override
-  Stream<List<ChatRoomPresenceModel>> watchPresence({
-    required String chatRoomId,
-  }) {
+  Stream<List<ChatRoomPresenceModel>> watchPresence(String chatRoomId) {
     return _ensureSession(chatRoomId).presenceController.stream;
   }
 
   @override
-  Stream<ChatRoomPresenceEventModel> watchPresenceEvents({
-    required String chatRoomId,
-  }) {
+  Stream<ChatRoomPresenceEventModel> watchPresenceEvents(String chatRoomId) {
     return _ensureSession(chatRoomId).eventController.stream;
   }
 

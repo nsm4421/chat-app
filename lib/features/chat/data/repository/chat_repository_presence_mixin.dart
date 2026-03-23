@@ -7,7 +7,7 @@ mixin _ChatPresenceRepositoryMixin on ChatRepositoryErrorHandler {
     required String chatRoomId,
   }) {
     return _chatRoomPresenceDataSource
-        .watchPresence(chatRoomId: chatRoomId)
+        .watchPresence(chatRoomId)
         .map(
           (presences) => presences
               .map((presence) => presence.toChatRoomPresence())
@@ -40,7 +40,7 @@ mixin _ChatPresenceRepositoryMixin on ChatRepositoryErrorHandler {
     required String chatRoomId,
   }) {
     return _chatRoomPresenceDataSource
-        .watchPresenceEvents(chatRoomId: chatRoomId)
+        .watchPresenceEvents(chatRoomId)
         .map((event) => event.toChatRoomPresenceEvent())
         .transform(
           StreamTransformer<
@@ -65,25 +65,15 @@ mixin _ChatPresenceRepositoryMixin on ChatRepositoryErrorHandler {
         );
   }
 
-  Future<void> enterChatRoomPresence({
-    required String chatRoomId,
-    required String userId,
-    String? displayName,
-    String? avatarUrl,
-  }) async {
+  Future<void> enterChatRoomPresence(String chatRoomId) async {
     await guardChatRequest(() async {
-      await _chatRoomPresenceDataSource.enter(
-        chatRoomId: chatRoomId,
-        userId: userId,
-        displayName: displayName,
-        avatarUrl: avatarUrl,
-      );
+      await _chatRoomPresenceDataSource.enter(chatRoomId);
     }, fallbackMessage: '채팅방 접속 상태를 등록하지 못했어요. 잠시 후 다시 시도해 주세요.');
   }
 
-  Future<void> leaveChatRoomPresence({required String chatRoomId}) async {
+  Future<void> leaveChatRoomPresence(String chatRoomId) async {
     await guardChatRequest(() async {
-      await _chatRoomPresenceDataSource.leave(chatRoomId: chatRoomId);
+      await _chatRoomPresenceDataSource.leave(chatRoomId);
     }, fallbackMessage: '채팅방 접속 상태를 정리하지 못했어요. 잠시 후 다시 시도해 주세요.');
   }
 }

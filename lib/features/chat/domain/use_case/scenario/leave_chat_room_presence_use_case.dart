@@ -5,7 +5,7 @@ final class LeaveChatRoomPresenceUseCase {
 
   final ChatRepository _chatRepository;
 
-  Future<void> call({required String chatRoomId}) {
-    return _chatRepository.leaveChatRoomPresence(chatRoomId: chatRoomId);
+  Future<void> call(String chatRoomId) {
+    return _chatRepository.leaveChatRoomPresence(chatRoomId);
   }
 }

@@ -1,4 +1,5 @@
 import 'package:domodachi/features/chat/domain/entity/chat_message.dart';
+import 'package:domodachi/features/chat/domain/entity/chat_room_member.dart';
 import 'package:domodachi/features/chat/domain/entity/chat_room_presence.dart';
 import 'package:domodachi/features/chat/domain/entity/chat_room.dart';
 import 'package:domodachi/features/chat/core/value_objects/chat_room_enums.dart';
@@ -80,14 +81,35 @@ abstract class ChatRepository {
   Future<void> deleteChatMessage(String chatMessageId);
 
   // Presence writes
-  Future<void> enterChatRoomPresence({
+  Future<void> enterChatRoomPresence(String chatRoomId);
+
+  Future<void> leaveChatRoomPresence(String chatRoomId);
+
+  // Member reads
+  Stream<List<ChatRoomMember>> watchChatRoomMembers({
     required String chatRoomId,
-    required String userId,
-    String? displayName,
-    String? avatarUrl,
   });
 
-  Future<void> leaveChatRoomPresence({required String chatRoomId});
+  Future<List<ChatRoomMember>> fetchChatRoomMembers({
+    required String chatRoomId,
+    int limit = 30,
+    String? cursor,
+  });
+
+  Future<ChatRoomMember?> getChatRoomMember({
+    required String chatRoomId,
+    required String userId,
+  });
+
+  Future<bool> isChatRoomMember({
+    required String chatRoomId,
+    required String userId,
+  });
+
+  // Member writes
+  Future<void> joinChatRoom(String chatRoomId);
+
+  Future<void> leaveChatRoom(String chatRoomId);
 
   // Room deletion
   Future<void> deleteChatRoom(String chatRoomId);

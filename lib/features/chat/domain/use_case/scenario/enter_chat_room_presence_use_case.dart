@@ -5,17 +5,7 @@ final class EnterChatRoomPresenceUseCase {
 
   final ChatRepository _chatRepository;
 
-  Future<void> call({
-    required String chatRoomId,
-    required String userId,
-    String? displayName,
-    String? avatarUrl,
-  }) {
-    return _chatRepository.enterChatRoomPresence(
-      chatRoomId: chatRoomId,
-      userId: userId,
-      displayName: displayName,
-      avatarUrl: avatarUrl,
-    );
+  Future<void> call(String chatRoomId) {
+    return _chatRepository.enterChatRoomPresence(chatRoomId);
   }
 }

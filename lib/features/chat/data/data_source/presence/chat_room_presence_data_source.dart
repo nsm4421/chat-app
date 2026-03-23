@@ -2,20 +2,11 @@ import 'package:domodachi/features/chat/data/model/chat_room_presence_event_mode
 import 'package:domodachi/features/chat/data/model/chat_room_presence_model.dart';
 
 abstract interface class ChatRoomPresenceDataSource {
-  Future<void> enter({
-    required String chatRoomId,
-    required String userId,
-    String? displayName,
-    String? avatarUrl,
-  });
+  Future<void> enter(String chatRoomId);
 
-  Future<void> leave({required String chatRoomId});
+  Future<void> leave(String chatRoomId);
 
-  Stream<List<ChatRoomPresenceModel>> watchPresence({
-    required String chatRoomId,
-  });
+  Stream<List<ChatRoomPresenceModel>> watchPresence(String chatRoomId);
 
-  Stream<ChatRoomPresenceEventModel> watchPresenceEvents({
-    required String chatRoomId,
-  });
+  Stream<ChatRoomPresenceEventModel> watchPresenceEvents(String chatRoomId);
 }

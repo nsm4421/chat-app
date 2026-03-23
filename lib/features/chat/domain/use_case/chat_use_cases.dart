@@ -7,12 +7,14 @@ import 'package:domodachi/features/chat/domain/use_case/scenario/leave_chat_room
 import 'package:domodachi/features/chat/domain/use_case/scenario/fetch_discover_chat_rooms_use_case.dart';
 import 'package:domodachi/features/chat/domain/use_case/scenario/fetch_my_group_chat_rooms_use_case.dart';
 import 'package:domodachi/features/chat/domain/use_case/scenario/fetch_my_private_chat_rooms_use_case.dart';
+import 'package:domodachi/features/chat/domain/use_case/scenario/join_group_chat_room_use_case.dart';
 import 'package:domodachi/features/chat/domain/use_case/scenario/get_draft_chat_room_use_case.dart';
 import 'package:domodachi/features/chat/domain/use_case/scenario/get_chat_room_use_case.dart';
 import 'package:domodachi/features/chat/domain/use_case/scenario/save_draft_chat_room_use_case.dart';
 import 'package:domodachi/features/chat/domain/use_case/scenario/update_chat_room_use_case.dart';
 import 'package:domodachi/features/chat/domain/use_case/scenario/watch_chat_room_presence_events_use_case.dart';
 import 'package:domodachi/features/chat/domain/use_case/scenario/watch_chat_room_presence_use_case.dart';
+import 'package:domodachi/features/chat/domain/use_case/scenario/leave_group_chat_room_use_case.dart';
 import 'package:injectable/injectable.dart';
 
 @lazySingleton
@@ -52,27 +54,49 @@ class ChatUseCases {
       WatchChatRoomPresenceUseCase(_repository);
   late final WatchChatRoomPresenceEventsUseCase _watchChatRoomPresenceEvents =
       WatchChatRoomPresenceEventsUseCase(_repository);
+  late final JoinGroupChatRoomUseCase _joinGroupChatRoom =
+      JoinGroupChatRoomUseCase(_repository);
+  late final LeaveGroupChatRoomUseCase _leaveGroupChatRoom =
+      LeaveGroupChatRoomUseCase(_repository);
 
   FetchDiscoverChatRoomsUseCase get fetchDiscoverChatRooms =>
       _fetchDiscoverChatRooms;
+
   FetchMyGroupChatRoomsUseCase get fetchMyGroupChatRooms =>
       _fetchMyGroupChatRooms;
+
   FetchMyPrivateChatRoomsUseCase get fetchMyPrivateChatRooms =>
       _fetchMyPrivateChatRooms;
+
   GetChatRoomUseCase get getChatRoom => _getChatRoom;
+
   GetDraftChatRoomUseCase get getDraftChatRoom => _getDraftChatRoom;
+
   SaveDraftChatRoomUseCase get saveDraftChatRoom => _saveDraftChatRoom;
+
   CreateRemoteChatRoomUseCase get createRemoteChatRoom => _createRemoteChatRoom;
+
   CreateRemoteChatRoomUseCase get createChatRoom => _createChatRoom;
+
   UpdateChatRoomUseCase get updateChatRoom => _updateChatRoom;
+
   DeleteChatRoomUseCase get deleteChatRoom => _deleteChatRoom;
+
   DeleteDraftChatRoomUseCase get deleteDraftChatRoom => _deleteDraftChatRoom;
+
   EnterChatRoomPresenceUseCase get enterChatRoomPresence =>
       _enterChatRoomPresence;
+
   LeaveChatRoomPresenceUseCase get leaveChatRoomPresence =>
       _leaveChatRoomPresence;
+
   WatchChatRoomPresenceUseCase get watchChatRoomPresence =>
       _watchChatRoomPresence;
+
   WatchChatRoomPresenceEventsUseCase get watchChatRoomPresenceEvents =>
       _watchChatRoomPresenceEvents;
+
+  JoinGroupChatRoomUseCase get joinGroupChatRoom => _joinGroupChatRoom;
+
+  LeaveGroupChatRoomUseCase get leaveGroupChatRoom => _leaveGroupChatRoom;
 }

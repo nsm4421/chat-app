@@ -4,6 +4,7 @@ final class ChatRoomMember {
     required this.userId,
     required this.isHost,
     required this.joinedAt,
+    this.anonymousIndex,
     this.displayName,
     this.username,
     this.avatarUrl,
@@ -13,9 +14,9 @@ final class ChatRoomMember {
   final String userId;
   final bool isHost;
   final DateTime joinedAt;
+  final int? anonymousIndex;
 
   final String? displayName;
   final String? username;
   final String? avatarUrl;
 }
-

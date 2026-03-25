@@ -11,6 +11,7 @@ class ChatRoomMemberOverviewModel with _$ChatRoomMemberOverviewModel {
     @JsonKey(name: 'user_id') required this.userId,
     @JsonKey(name: 'is_host') required this.isHost,
     @JsonKey(name: 'joined_at') required this.joinedAt,
+    @JsonKey(name: 'anonymous_index') this.anonymousIndex,
     @JsonKey(name: 'display_name') this.displayName,
     @JsonKey(name: 'username') this.username,
     @JsonKey(name: 'avatar_url') this.avatarUrl,
@@ -34,6 +35,9 @@ class ChatRoomMemberOverviewModel with _$ChatRoomMemberOverviewModel {
   final DateTime joinedAt;
 
   @override
+  final int? anonymousIndex;
+
+  @override
   final String? displayName;
 
   @override
@@ -42,4 +46,3 @@ class ChatRoomMemberOverviewModel with _$ChatRoomMemberOverviewModel {
   @override
   final String? avatarUrl;
 }
-

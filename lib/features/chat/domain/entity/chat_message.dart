@@ -6,6 +6,7 @@ final class ChatMessage {
     required this.content,
     required this.createdAt,
     this.updatedAt,
+    this.anonymousIndex,
     this.senderDisplayName,
     this.senderUsername,
     this.senderAvatarUrl,
@@ -17,6 +18,7 @@ final class ChatMessage {
   final String content;
   final DateTime createdAt;
   final DateTime? updatedAt;
+  final int? anonymousIndex;
   final String? senderDisplayName;
   final String? senderUsername;
   final String? senderAvatarUrl;

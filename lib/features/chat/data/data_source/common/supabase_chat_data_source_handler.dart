@@ -20,6 +20,20 @@ mixin class SupabaseChatDataSourceHandler {
   String mapChatRoomError(Object error) {
     final message = error.toString().toLowerCase();
 
+    if ((message.contains('chat_room_aliases_user_id_fkey') ||
+            message.contains('chat_room_members_user_id_fkey') ||
+            message.contains('auth.users')) &&
+        message.contains('foreign key')) {
+      return '현재 로그인 정보가 로컬 데이터와 맞지 않아요. 다시 로그인해 주세요.';
+    }
+
+    if ((message.contains('chat_room_aliases_chat_room_id_fkey') ||
+            message.contains('chat_room_members_chat_room_id_fkey') ||
+            message.contains('chat_rooms(id)')) &&
+        message.contains('foreign key')) {
+      return '이미 삭제되었거나 존재하지 않는 채팅방이에요.';
+    }
+
     if (message.contains('permission') ||
         message.contains('row-level security') ||
         message.contains('not allowed')) {

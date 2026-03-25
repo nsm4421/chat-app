@@ -1,5 +1,7 @@
 import 'package:domodachi/features/chat/core/value_objects/chat_room_enums.dart';
 import 'package:domodachi/features/chat/domain/entity/chat_message.dart';
+import 'package:domodachi/features/chat/domain/entity/chat_room_event.dart';
+import 'package:domodachi/features/chat/domain/entity/chat_room_member.dart';
 import 'package:domodachi/features/chat/domain/entity/chat_room_presence.dart';
 import 'package:domodachi/features/chat/domain/entity/chat_room.dart';
 import 'package:domodachi/features/chat/domain/repository/chat_repository.dart';
@@ -15,22 +17,24 @@ class FakeChatRepository implements ChatRepository {
 
   ChatRoom? currentRoom;
   List<ChatMessage> chatMessages = const <ChatMessage>[];
+  List<ChatRoomEvent> chatRoomEvents = const <ChatRoomEvent>[];
+  List<ChatRoomMember> chatRoomMembers = const <ChatRoomMember>[];
   List<ChatRoomPresence> chatRoomPresences = const <ChatRoomPresence>[];
   Future<ChatRoom?> Function(String chatRoomId)? getChatRoomHandler;
   Stream<ChatMessage> Function(String chatRoomId)? watchNewChatMessagesHandler;
+  Stream<ChatRoomEvent> Function(String chatRoomId)?
+  watchNewChatRoomEventsHandler;
+  Stream<ChatRoomEvent> Function()? watchDeletedChatRoomEventsHandler;
+  Stream<List<ChatRoomMember>> Function(String chatRoomId)?
+  watchChatRoomMembersHandler;
   Stream<List<ChatRoomPresence>> Function(String chatRoomId)?
   watchChatRoomPresenceHandler;
   Stream<ChatRoomPresenceEvent> Function(String chatRoomId)?
   watchChatRoomPresenceEventsHandler;
-  Future<void> Function({
-    required String chatRoomId,
-    required String userId,
-    String? displayName,
-    String? avatarUrl,
-  })?
-  enterChatRoomPresenceHandler;
-  Future<void> Function({required String chatRoomId})?
-  leaveChatRoomPresenceHandler;
+  Future<void> Function(String chatRoomId)? joinChatRoomHandler;
+  Future<void> Function(String chatRoomId)? leaveChatRoomHandler;
+  Future<void> Function(String chatRoomId)? enterChatRoomPresenceHandler;
+  Future<void> Function(String chatRoomId)? leaveChatRoomPresenceHandler;
   Future<ChatMessage> Function({
     required String chatRoomId,
     required String content,
@@ -93,14 +97,40 @@ class FakeChatRepository implements ChatRepository {
   }) async => chatMessages;
 
   @override
+  Future<List<ChatRoomEvent>> fetchChatRoomEvents({
+    required String chatRoomId,
+    int limit = 50,
+    String? cursor,
+  }) async => chatRoomEvents;
+
+  @override
   Future<ChatRoom?> getChatRoom(String chatRoomId) async {
     return getChatRoomHandler?.call(chatRoomId) ?? currentRoom;
+  }
+
+  @override
+  Stream<ChatRoomEvent> watchDeletedChatRoomEvents() {
+    return watchDeletedChatRoomEventsHandler?.call() ?? const Stream.empty();
   }
 
   @override
   Stream<ChatMessage> watchNewChatMessages({required String chatRoomId}) {
     return watchNewChatMessagesHandler?.call(chatRoomId) ??
         const Stream.empty();
+  }
+
+  @override
+  Stream<ChatRoomEvent> watchNewChatRoomEvents({required String chatRoomId}) {
+    return watchNewChatRoomEventsHandler?.call(chatRoomId) ??
+        const Stream.empty();
+  }
+
+  @override
+  Stream<List<ChatRoomMember>> watchChatRoomMembers({
+    required String chatRoomId,
+  }) {
+    return watchChatRoomMembersHandler?.call(chatRoomId) ??
+        Stream<List<ChatRoomMember>>.value(chatRoomMembers);
   }
 
   @override
@@ -195,23 +225,53 @@ class FakeChatRepository implements ChatRepository {
   Future<void> deleteChatMessage(String chatMessageId) async {}
 
   @override
-  Future<void> enterChatRoomPresence({
+  Future<void> enterChatRoomPresence(String chatRoomId) async {
+    await enterChatRoomPresenceHandler?.call(chatRoomId);
+  }
+
+  @override
+  Future<void> leaveChatRoomPresence(String chatRoomId) async {
+    await leaveChatRoomPresenceHandler?.call(chatRoomId);
+  }
+
+  @override
+  Future<List<ChatRoomMember>> fetchChatRoomMembers({
+    required String chatRoomId,
+    int limit = 30,
+    String? cursor,
+  }) async => chatRoomMembers;
+
+  @override
+  Future<ChatRoomMember?> getChatRoomMember({
     required String chatRoomId,
     required String userId,
-    String? displayName,
-    String? avatarUrl,
   }) async {
-    await enterChatRoomPresenceHandler?.call(
-      chatRoomId: chatRoomId,
-      userId: userId,
-      displayName: displayName,
-      avatarUrl: avatarUrl,
+    for (final member in chatRoomMembers) {
+      if (member.chatRoomId == chatRoomId && member.userId == userId) {
+        return member;
+      }
+    }
+    return null;
+  }
+
+  @override
+  Future<bool> isChatRoomMember({
+    required String chatRoomId,
+    required String userId,
+  }) async {
+    return chatRoomMembers.any(
+      (member) => member.chatRoomId == chatRoomId && member.userId == userId,
     );
   }
 
   @override
-  Future<void> leaveChatRoomPresence({required String chatRoomId}) async {
-    await leaveChatRoomPresenceHandler?.call(chatRoomId: chatRoomId);
+  Future<void> joinChatRoom(String chatRoomId) async {
+    await joinChatRoomHandler?.call(chatRoomId);
+  }
+
+  @override
+  Future<void> leaveChatRoom(String chatRoomId) async {
+    await leaveChatRoomHandler?.call(chatRoomId);
   }
 
   @override

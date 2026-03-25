@@ -8,10 +8,10 @@ extension ChatRoomMemberOverviewModelMapper on ChatRoomMemberOverviewModel {
       userId: userId,
       isHost: isHost,
       joinedAt: joinedAt,
+      anonymousIndex: anonymousIndex,
       displayName: displayName,
       username: username,
       avatarUrl: avatarUrl,
     );
   }
 }
-

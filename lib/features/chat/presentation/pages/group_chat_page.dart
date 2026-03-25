@@ -25,6 +25,16 @@ class GroupChatPage extends StatelessWidget {
 class _GroupChatView extends StatelessWidget {
   const _GroupChatView();
 
+  Future<void> _handleCreateChatRoom(BuildContext context) async {
+    final didCreate = await context.push<bool>(AppRoutePath.createChatRoom);
+
+    if (!context.mounted || didCreate != true) {
+      return;
+    }
+
+    context.read<GroupChatRoomBloc>().refresh();
+  }
+
   Future<void> _openFilterSheet(BuildContext context) async {
     final bloc = context.read<GroupChatRoomBloc>();
     final nextParams = await showModalBottomSheet<GroupChatSearchParams>(
@@ -130,7 +140,7 @@ class _GroupChatView extends StatelessWidget {
         ),
         actions: [
           IconButton(
-            onPressed: () => context.push(AppRoutePath.createChatRoom),
+            onPressed: () => _handleCreateChatRoom(context),
             tooltip: '채팅방 만들기',
             icon: const Icon(Icons.add_rounded),
           ),
@@ -143,7 +153,10 @@ class _GroupChatView extends StatelessWidget {
           ),
         ],
       ),
-      body: _GroupChatList(searchParams: searchParams),
+      body: _GroupChatList(
+        searchParams: searchParams,
+        onCreateChatRoom: () => _handleCreateChatRoom(context),
+      ),
     );
   }
 }
@@ -151,9 +164,11 @@ class _GroupChatView extends StatelessWidget {
 class _GroupChatList extends StatefulWidget {
   const _GroupChatList({
     required this.searchParams,
+    required this.onCreateChatRoom,
   });
 
   final GroupChatSearchParams searchParams;
+  final Future<void> Function() onCreateChatRoom;
 
   @override
   State<_GroupChatList> createState() => _GroupChatListState();
@@ -193,7 +208,10 @@ class _GroupChatListState extends State<_GroupChatList> {
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<GroupChatRoomBloc, CursorPaginationState<ChatRoom, String>>(
+    return BlocBuilder<
+      GroupChatRoomBloc,
+      CursorPaginationState<ChatRoom, String>
+    >(
       builder: (context, state) {
         final hostedOnly = widget.searchParams.hostedOnly;
 
@@ -221,9 +239,7 @@ class _GroupChatListState extends State<_GroupChatList> {
                 ? Icons.add_comment_outlined
                 : Icons.groups_2_outlined,
             actionLabel: hostedOnly ? '채팅방 만들기' : '새로고침',
-            onAction: hostedOnly
-                ? () => context.push(AppRoutePath.createChatRoom)
-                : _refresh,
+            onAction: hostedOnly ? widget.onCreateChatRoom : _refresh,
           );
         }
 
@@ -270,8 +286,8 @@ class _GroupChatListState extends State<_GroupChatList> {
                     final room = state.items[index];
                     return Padding(
                       padding: EdgeInsets.only(
-                        bottom: index == state.items.length - 1 &&
-                                !hasTrailingState
+                        bottom:
+                            index == state.items.length - 1 && !hasTrailingState
                             ? 0
                             : 14,
                       ),
@@ -295,14 +311,15 @@ class _GroupChatRoomTile extends StatelessWidget {
 
   bool get _canManageRoom => room.isGroup && room.isHost;
 
-  void _handleOpen(BuildContext context) {
-    final messenger = ScaffoldMessenger.of(context);
-    messenger.hideCurrentSnackBar();
-    messenger.showSnackBar(
-      SnackBar(
-        content: Text(room.isJoined ? '입장 mock입니다.' : '참여 mock입니다.'),
-      ),
+  Future<void> _handleOpen(BuildContext context) async {
+    final didDelete = await context.push<bool>(
+      AppRoutePath.groupChatRoomPath(room.id),
     );
+    if (!context.mounted || didDelete != true) {
+      return;
+    }
+
+    context.read<GroupChatRoomBloc>().itemDeleted(room);
   }
 
   Future<void> _handleModify(BuildContext context) async {
@@ -359,7 +376,7 @@ class _GroupChatRoomTile extends StatelessWidget {
       messenger
         ..hideCurrentSnackBar()
         ..showSnackBar(const SnackBar(content: Text('채팅방을 삭제했어요.')));
-      context.read<GroupChatRoomBloc>().refresh();
+      context.read<GroupChatRoomBloc>().itemDeleted(room);
     } on Failure catch (error) {
       messenger
         ..hideCurrentSnackBar()
@@ -468,7 +485,9 @@ class _GroupChatRoomTile extends StatelessWidget {
                     _GroupChatMetaChip(
                       label: '${room.memberCount}/${room.maxParticipants}명',
                     ),
-                    _GroupChatMetaChip(label: _formatRelativeTime(lastActivity)),
+                    _GroupChatMetaChip(
+                      label: _formatRelativeTime(lastActivity),
+                    ),
                   ],
                 ),
               ],
@@ -550,10 +569,7 @@ class _GroupChatEmptyState extends StatelessWidget {
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 18),
-            FilledButton(
-              onPressed: onAction,
-              child: Text(actionLabel),
-            ),
+            FilledButton(onPressed: onAction, child: Text(actionLabel)),
           ],
         ),
       ),
@@ -562,10 +578,7 @@ class _GroupChatEmptyState extends StatelessWidget {
 }
 
 class _GroupChatInlineError extends StatelessWidget {
-  const _GroupChatInlineError({
-    required this.message,
-    required this.onRetry,
-  });
+  const _GroupChatInlineError({required this.message, required this.onRetry});
 
   final String message;
   final VoidCallback onRetry;

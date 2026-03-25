@@ -15,15 +15,13 @@ class SupabaseChatMessageDataSourceImpl
   SupabaseChatMessageDataSourceImpl(this._client);
 
   // Writes go to `chat_messages`.
-  // Reads should come from a dedicated overview view that joins sender profile
-  // fields and excludes soft-deleted rows inside the view itself.
+  // Reads come from an overview view that adds stable room-scoped aliases.
   static const _chatMessagesTable = 'chat_messages';
   static const _chatMessageOverviewView = 'chat_message_overview';
   static const _messageColumns =
       'id, chat_room_id, sender_id, content, created_at, updated_at';
   static const _messageOverviewColumns =
-      'id, chat_room_id, sender_id, content, created_at, updated_at, '
-      'sender_display_name, sender_username, sender_avatar_url';
+      'id, chat_room_id, sender_id, content, created_at, updated_at, anonymous_index';
 
   final SupabaseClient _client;
 

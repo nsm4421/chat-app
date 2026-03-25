@@ -1,4 +1,5 @@
 import 'package:domodachi/features/chat/domain/entity/chat_message.dart';
+import 'package:domodachi/features/chat/domain/entity/chat_room_event.dart';
 import 'package:domodachi/features/chat/domain/entity/chat_room_member.dart';
 import 'package:domodachi/features/chat/domain/entity/chat_room_presence.dart';
 import 'package:domodachi/features/chat/domain/entity/chat_room.dart';
@@ -32,6 +33,17 @@ abstract class ChatRepository {
   });
 
   Stream<ChatMessage> watchNewChatMessages({required String chatRoomId});
+
+  // Event reads
+  Future<List<ChatRoomEvent>> fetchChatRoomEvents({
+    required String chatRoomId,
+    int limit = 50,
+    String? cursor,
+  });
+
+  Stream<ChatRoomEvent> watchNewChatRoomEvents({required String chatRoomId});
+
+  Stream<ChatRoomEvent> watchDeletedChatRoomEvents();
 
   // Presence reads
   Stream<List<ChatRoomPresence>> watchChatRoomPresence({

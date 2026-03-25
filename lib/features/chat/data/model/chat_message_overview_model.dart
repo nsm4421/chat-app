@@ -13,6 +13,7 @@ class ChatMessageOverviewModel with _$ChatMessageOverviewModel {
     this.content = '',
     @JsonKey(name: 'created_at') required this.createdAt,
     @JsonKey(name: 'updated_at') this.updatedAt,
+    @JsonKey(name: 'anonymous_index') this.anonymousIndex,
     @JsonKey(name: 'sender_display_name') this.senderDisplayName,
     @JsonKey(name: 'sender_username') this.senderUsername,
     @JsonKey(name: 'sender_avatar_url') this.senderAvatarUrl,
@@ -38,6 +39,9 @@ class ChatMessageOverviewModel with _$ChatMessageOverviewModel {
 
   @override
   final DateTime? updatedAt;
+
+  @override
+  final int? anonymousIndex;
 
   @override
   final String? senderDisplayName;

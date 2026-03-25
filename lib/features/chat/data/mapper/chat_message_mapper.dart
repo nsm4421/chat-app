@@ -24,6 +24,7 @@ extension ChatMessageOverviewModelMapper on ChatMessageOverviewModel {
       content: content,
       createdAt: createdAt,
       updatedAt: updatedAt,
+      anonymousIndex: anonymousIndex,
       senderDisplayName: senderDisplayName,
       senderUsername: senderUsername,
       senderAvatarUrl: senderAvatarUrl,

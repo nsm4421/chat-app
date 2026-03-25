@@ -18,7 +18,7 @@ class SupabaseChatRoomMemberDataSourceImpl
   static const _chatRoomMembersTable = 'chat_room_members';
   static const _chatRoomMemberOverviewView = 'chat_room_member_overview';
   static const _memberOverviewColumns =
-      'chat_room_id, user_id, is_host, joined_at, display_name, username, avatar_url';
+      'chat_room_id, user_id, is_host, joined_at, anonymous_index';
 
   @override
   Future<void> join(String chatRoomId) {
@@ -225,5 +225,5 @@ class SupabaseChatRoomMemberDataSourceImpl
       };
     });
   }
-}
 
+}

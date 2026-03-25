@@ -1,5 +1,8 @@
+import 'dart:async';
+
 import 'package:domodachi/core/pagination/cursor_pagination_bloc.dart';
 import 'package:domodachi/core/pagination/cursor_pagination_page.dart';
+import 'package:domodachi/features/chat/domain/entity/chat_room_event.dart';
 import 'package:domodachi/features/chat/domain/entity/chat_room.dart';
 import 'package:domodachi/features/chat/domain/use_case/chat_use_cases.dart';
 import 'package:domodachi/features/chat/presentation/bloc/group_chat/group_chat_search_params.dart';
@@ -8,12 +11,16 @@ import 'package:injectable/injectable.dart';
 @injectable
 class GroupChatRoomBloc extends CursorPaginationBloc<ChatRoom, String> {
   GroupChatRoomBloc(this._chatUseCases) {
+    _deletedRoomSubscription = _chatUseCases.watchDeletedChatRoomEvents().listen(
+      _handleDeletedRoomEvent,
+    );
     init();
   }
 
   static const _pageSize = 20;
 
   final ChatUseCases _chatUseCases;
+  StreamSubscription<ChatRoomEvent>? _deletedRoomSubscription;
 
   GroupChatSearchParams _searchParams = GroupChatSearchParams.defaults;
 
@@ -36,6 +43,20 @@ class GroupChatRoomBloc extends CursorPaginationBloc<ChatRoom, String> {
 
   void resetSearchParams() {
     updateSearchParams(GroupChatSearchParams.defaults);
+  }
+
+  void _handleDeletedRoomEvent(ChatRoomEvent event) {
+    if (event.type != ChatRoomEventType.roomDeleted) {
+      return;
+    }
+
+    final roomId = event.chatRoomId;
+    for (final room in state.items) {
+      if (room.id == roomId) {
+        itemDeleted(room);
+        return;
+      }
+    }
   }
 
   @override
@@ -63,5 +84,11 @@ class GroupChatRoomBloc extends CursorPaginationBloc<ChatRoom, String> {
       nextCursor: nextCursor,
       hasMore: items.length >= _pageSize && nextCursor != null,
     );
+  }
+
+  @override
+  Future<void> close() async {
+    await _deletedRoomSubscription?.cancel();
+    return super.close();
   }
 }

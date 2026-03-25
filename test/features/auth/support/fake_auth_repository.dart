@@ -17,6 +17,7 @@ class FakeAuthRepository implements AuthRepository {
     Future<void> Function(String email)? sendPasswordResetEmailHandler,
     Future<void> Function({required String displayName})?
     completeProfileHandler,
+    Future<void> Function({required String displayName})? updateProfileHandler,
   }) : _currentUser = currentUser,
        _authStateChanges = authStateChanges ?? const Stream.empty(),
        _isProfileComplete =
@@ -26,7 +27,8 @@ class FakeAuthRepository implements AuthRepository {
        _signOutHandler = signOutHandler,
        _deleteAccountHandler = deleteAccountHandler,
        _sendPasswordResetEmailHandler = sendPasswordResetEmailHandler,
-       _completeProfileHandler = completeProfileHandler;
+       _completeProfileHandler = completeProfileHandler,
+       _updateProfileHandler = updateProfileHandler;
 
   AuthUser? _currentUser;
   final Stream<AuthUser?> _authStateChanges;
@@ -46,6 +48,8 @@ class FakeAuthRepository implements AuthRepository {
   final Future<void> Function(String email)? _sendPasswordResetEmailHandler;
   final Future<void> Function({required String displayName})?
   _completeProfileHandler;
+  final Future<void> Function({required String displayName})?
+  _updateProfileHandler;
 
   int signInCallCount = 0;
   String? lastSignInEmail;
@@ -94,5 +98,10 @@ class FakeAuthRepository implements AuthRepository {
   @override
   Future<void> completeProfile({required String displayName}) async {
     await _completeProfileHandler?.call(displayName: displayName);
+  }
+
+  @override
+  Future<void> updateProfile({required String displayName}) async {
+    await _updateProfileHandler?.call(displayName: displayName);
   }
 }

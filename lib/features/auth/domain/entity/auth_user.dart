@@ -7,7 +7,8 @@ class AuthUser with _$AuthUser {
   const AuthUser({
     required this.id,
     this.email,
-    this.displayName,
+    this.username,
+    this.avatarUrl,
     this.emailVerified = false,
     this.profileCompleted = false,
   });
@@ -19,7 +20,10 @@ class AuthUser with _$AuthUser {
   final String? email;
 
   @override
-  final String? displayName;
+  final String? username;
+
+  @override
+  final String? avatarUrl;
 
   @override
   final bool emailVerified;
@@ -28,5 +32,5 @@ class AuthUser with _$AuthUser {
   final bool profileCompleted;
 
   bool get isProfileComplete =>
-      profileCompleted && (displayName?.trim().isNotEmpty ?? false);
+      profileCompleted && (username?.trim().isNotEmpty ?? false);
 }

@@ -6,7 +6,8 @@ extension AuthUserModelMapper on AuthUserModel {
     return AuthUser(
       id: id,
       email: email,
-      displayName: displayName,
+      username: username,
+      avatarUrl: avatarUrl,
       emailVerified: emailVerified,
       profileCompleted: profileCompleted,
     );

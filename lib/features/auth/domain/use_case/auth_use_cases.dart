@@ -3,11 +3,13 @@ import 'package:domodachi/features/auth/domain/use_case/scenario/complete_profil
 import 'package:domodachi/features/auth/domain/use_case/scenario/delete_account_use_case.dart';
 import 'package:domodachi/features/auth/domain/use_case/scenario/get_current_user_use_case.dart';
 import 'package:domodachi/features/auth/domain/use_case/scenario/is_profile_complete_use_case.dart';
+import 'package:domodachi/features/auth/domain/use_case/scenario/is_username_available_use_case.dart';
 import 'package:domodachi/features/auth/domain/use_case/scenario/observe_auth_state_changes_use_case.dart';
 import 'package:domodachi/features/auth/domain/use_case/scenario/send_password_reset_email_use_case.dart';
 import 'package:domodachi/features/auth/domain/use_case/scenario/sign_in_use_case.dart';
 import 'package:domodachi/features/auth/domain/use_case/scenario/sign_out_use_case.dart';
 import 'package:domodachi/features/auth/domain/use_case/scenario/sign_up_use_case.dart';
+import 'package:domodachi/features/auth/domain/use_case/scenario/update_profile_use_case.dart';
 import 'package:injectable/injectable.dart';
 
 @lazySingleton
@@ -23,6 +25,8 @@ class AuthUseCases {
       ObserveAuthStateChangesUseCase(_repository);
   late final IsProfileCompleteUseCase _isProfileComplete =
       IsProfileCompleteUseCase(_repository);
+  late final IsUsernameAvailableUseCase _isUsernameAvailable =
+      IsUsernameAvailableUseCase(_repository);
   late final SignInUseCase _signIn = SignInUseCase(_repository);
   late final SignUpUseCase _signUp = SignUpUseCase(_repository);
   late final SignOutUseCase _signOut = SignOutUseCase(_repository);
@@ -34,11 +38,15 @@ class AuthUseCases {
   late final CompleteProfileUseCase _completeProfile = CompleteProfileUseCase(
     _repository,
   );
+  late final UpdateProfileUseCase _updateProfile = UpdateProfileUseCase(
+    _repository,
+  );
 
   GetCurrentUserUseCase get currentUser => _currentUser;
   ObserveAuthStateChangesUseCase get observeAuthStateChanges =>
       _observeAuthStateChanges;
   IsProfileCompleteUseCase get isProfileComplete => _isProfileComplete;
+  IsUsernameAvailableUseCase get isUsernameAvailable => _isUsernameAvailable;
   SignInUseCase get signIn => _signIn;
   SignUpUseCase get signUp => _signUp;
   SignOutUseCase get signOut => _signOut;
@@ -46,4 +54,5 @@ class AuthUseCases {
   SendPasswordResetEmailUseCase get sendPasswordResetEmail =>
       _sendPasswordResetEmail;
   CompleteProfileUseCase get completeProfile => _completeProfile;
+  UpdateProfileUseCase get updateProfile => _updateProfile;
 }

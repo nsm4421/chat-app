@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'package:domodachi/features/auth/data/data_source/auth_data_source.dart';
 import 'package:domodachi/features/auth/data/mapper/auth_user_mapper.dart';
 import 'package:domodachi/features/auth/data/repository/auth_repository_error_handler.dart';
@@ -65,10 +67,34 @@ class AuthRepositoryImpl
   }
 
   @override
-  Future<void> completeProfile({required String displayName}) async {
+  Future<void> completeProfile({required String username}) async {
     await guardAuthRequest(
-      () => _authDataSource.completeProfile(displayName: displayName),
+      () => _authDataSource.completeProfile(username: username),
       fallbackMessage: '프로필 저장 중 문제가 발생했습니다. 잠시 후 다시 시도해 주세요.',
+    );
+  }
+
+  @override
+  Future<void> updateProfile({
+    required String username,
+    Uint8List? avatarBytes,
+    String? avatarFileExtension,
+  }) async {
+    await guardAuthRequest(
+      () => _authDataSource.updateProfile(
+        username: username,
+        avatarBytes: avatarBytes,
+        avatarFileExtension: avatarFileExtension,
+      ),
+      fallbackMessage: '프로필 수정 중 문제가 발생했습니다. 잠시 후 다시 시도해 주세요.',
+    );
+  }
+
+  @override
+  Future<bool> isUsernameAvailable(String username) async {
+    return guardAuthRequest(
+      () => _authDataSource.isUsernameAvailable(username),
+      fallbackMessage: '아이디 중복 여부를 확인하지 못했습니다. 잠시 후 다시 시도해 주세요.',
     );
   }
 }

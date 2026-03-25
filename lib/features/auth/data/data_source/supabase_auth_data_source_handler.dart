@@ -10,6 +10,8 @@ mixin class SupabaseAuthDataSourceHandler {
       rethrow;
     } on AuthException catch (error) {
       throw AuthDataException(error.message);
+    } on PostgrestException catch (error) {
+      throw AuthDataException(error.message);
     }
   }
 
@@ -47,7 +49,8 @@ mixin class SupabaseAuthDataSourceHandler {
     return AuthUserModel(
       id: user.id,
       email: user.email,
-      displayName: (metadata['display_name'] as String?)?.trim(),
+      username: (metadata['username'] as String?)?.trim(),
+      avatarUrl: (metadata['avatar_url'] as String?)?.trim(),
       emailVerified: user.emailConfirmedAt != null,
       profileCompleted: metadata['profile_completed'] == true,
     );

@@ -5,7 +5,7 @@ final class CompleteProfileUseCase {
 
   final AuthRepository _authRepository;
 
-  Future<void> call({required String displayName}) {
-    return _authRepository.completeProfile(displayName: displayName);
+  Future<void> call({required String username}) {
+    return _authRepository.completeProfile(username: username);
   }
 }

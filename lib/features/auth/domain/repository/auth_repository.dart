@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'package:domodachi/features/auth/domain/entity/auth_user.dart';
 
 abstract class AuthRepository {
@@ -17,5 +19,13 @@ abstract class AuthRepository {
 
   Future<void> sendPasswordResetEmail(String email);
 
-  Future<void> completeProfile({required String displayName});
+  Future<void> completeProfile({required String username});
+
+  Future<void> updateProfile({
+    required String username,
+    Uint8List? avatarBytes,
+    String? avatarFileExtension,
+  });
+
+  Future<bool> isUsernameAvailable(String username);
 }

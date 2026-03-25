@@ -8,9 +8,9 @@ class ProfileSetupCubit extends AuthRequestCubit {
 
   final AuthUseCases _authUseCases;
 
-  Future<void> submitProfile(String displayName) {
+  Future<void> submitProfile(String username) {
     return run(
-      () => _authUseCases.completeProfile(displayName: displayName.trim()),
+      () => _authUseCases.completeProfile(username: username.trim()),
     );
   }
 }

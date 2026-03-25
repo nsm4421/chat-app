@@ -6,7 +6,9 @@ abstract final class AppRoutePath {
   static const signUp = '/auth/sign-up';
   static const forgotPassword = '/auth/forgot-password';
   static const profileSetup = '/auth/profile-setup';
+  static const editProfile = '/settings/profile/edit';
   static const home = '/';
+  static const friends = '/friends';
   static const settings = '/settings';
   static const groupChatRoomRoot = '/chat/room';
   static const groupChatRoom = '$groupChatRoomRoot/:$chatRoomIdParam';

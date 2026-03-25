@@ -1,3 +1,4 @@
+import 'package:domodachi/app/router/app_route_path.dart';
 import 'package:domodachi/features/auth/presentation/cubit/session/auth_session_cubit.dart';
 import 'package:domodachi/features/auth/presentation/cubit/session/auth_session_state.dart';
 import 'package:domodachi/features/auth/presentation/cubit/account/delete_account_cubit.dart';
@@ -10,6 +11,7 @@ import 'package:domodachi/features/settings/widgets/settings_content.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get_it/get_it.dart';
+import 'package:go_router/go_router.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -32,7 +34,7 @@ class _HomePageState extends State<HomePage> {
           authenticated: (user) => user,
           orElse: () => null,
         );
-        final displayName = user?.displayName ?? 'Domodachi Crew';
+        final displayName = user?.username ?? 'domodachi';
         final email = user?.email ?? 'hello@domodachi.app';
 
         final tabs = [
@@ -763,6 +765,10 @@ class _MyPrivateChatsTab extends StatelessWidget {
 class _MyPrivateChatsTabView extends StatelessWidget {
   const _MyPrivateChatsTabView();
 
+  Future<void> _openFriends(BuildContext context) async {
+    await context.push(AppRoutePath.friends);
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -772,7 +778,25 @@ class _MyPrivateChatsTabView extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('DM', style: theme.textTheme.headlineMedium),
+          Row(
+            children: [
+              Expanded(
+                child: Text('DM', style: theme.textTheme.headlineMedium),
+              ),
+              OutlinedButton.icon(
+                onPressed: () => _openFriends(context),
+                icon: const Icon(Icons.group_add_outlined),
+                label: const Text('친구'),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Text(
+            '1:1 대화와 친구 관리를 함께 보세요.',
+            style: theme.textTheme.bodyMedium?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
+          ),
           const SizedBox(height: 20),
           const Expanded(child: _MyPrivateChatRoomList()),
         ],

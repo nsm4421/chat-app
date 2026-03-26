@@ -1,5 +1,6 @@
 import 'package:domodachi/app/router/app_route_path.dart';
 import 'package:domodachi/core/extensions/num_extension.dart';
+import 'package:domodachi/core/widgets/page_intro_header.dart';
 import 'package:domodachi/core/widgets/profile_avatar.dart';
 import 'package:domodachi/features/auth/presentation/cubit/session/auth_session_cubit.dart';
 import 'package:domodachi/features/auth/presentation/cubit/session/auth_session_state.dart';
@@ -22,18 +23,10 @@ class SettingsContent extends StatelessWidget {
     return ListView(
       padding: const EdgeInsets.fromLTRB(20, 16, 20, 120),
       children: [
-        Text(
-          '설정',
-          style: theme.textTheme.headlineMedium?.copyWith(
-            fontWeight: FontWeight.w700,
-          ),
-        ),
-        8.v,
-        Text(
-          '계정과 앱 환경설정을 여기에서 관리할 수 있어요.',
-          style: theme.textTheme.bodyMedium?.copyWith(
-            color: theme.colorScheme.onSurfaceVariant,
-          ),
+        const PageIntroHeader(
+          title: '설정',
+          subtitle: '계정과 앱 환경설정을 여기에서 관리하세요.',
+          padding: EdgeInsets.zero,
         ),
         24.v,
         Card(

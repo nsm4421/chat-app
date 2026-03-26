@@ -1,10 +1,10 @@
 import 'package:domodachi/app/router/app_route_path.dart';
 import 'package:domodachi/core/error/failure.dart';
 import 'package:domodachi/core/pagination/cursor_pagination_state.dart';
+import 'package:domodachi/core/widgets/page_intro_header.dart';
 import 'package:domodachi/features/chat/domain/entity/chat_room.dart';
 import 'package:domodachi/features/chat/domain/use_case/chat_use_cases.dart';
 import 'package:domodachi/features/chat/presentation/bloc/group_chat/group_chat_room_bloc.dart';
-import 'package:domodachi/features/chat/presentation/bloc/group_chat/group_chat_search_params.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get_it/get_it.dart';
@@ -35,84 +35,8 @@ class _GroupChatView extends StatelessWidget {
     context.read<GroupChatRoomBloc>().refresh();
   }
 
-  Future<void> _openFilterSheet(BuildContext context) async {
-    final bloc = context.read<GroupChatRoomBloc>();
-    final nextParams = await showModalBottomSheet<GroupChatSearchParams>(
-      context: context,
-      showDragHandle: true,
-      builder: (sheetContext) {
-        var draft = bloc.searchParams;
-
-        return StatefulBuilder(
-          builder: (context, setModalState) {
-            return SafeArea(
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(20, 8, 20, 20),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        Expanded(
-                          child: Text(
-                            '검색 옵션',
-                            style: Theme.of(context).textTheme.titleLarge,
-                          ),
-                        ),
-                        IconButton(
-                          onPressed: () {
-                            setModalState(() {
-                              draft = GroupChatSearchParams.defaults;
-                            });
-                          },
-                          tooltip: '리셋',
-                          icon: const Icon(Icons.refresh_rounded),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 8),
-                    SwitchListTile.adaptive(
-                      contentPadding: EdgeInsets.zero,
-                      title: const Text('내가 만든 채팅방만 보기'),
-                      subtitle: const Text('공개 그룹채팅 대신 내가 만든 방만 표시해요.'),
-                      value: draft.hostedOnly,
-                      onChanged: (value) {
-                        setModalState(() {
-                          draft = draft.copyWith(hostedOnly: value);
-                        });
-                      },
-                    ),
-                    const SizedBox(height: 12),
-                    SizedBox(
-                      width: double.infinity,
-                      child: FilledButton(
-                        onPressed: () => sheetContext.pop(draft),
-                        child: const Text('적용'),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            );
-          },
-        );
-      },
-    );
-
-    if (!context.mounted || nextParams == null) {
-      return;
-    }
-
-    bloc.updateSearchParams(nextParams);
-  }
-
   @override
   Widget build(BuildContext context) {
-    final bloc = context.watch<GroupChatRoomBloc>();
-    final searchParams = bloc.searchParams;
-    final subtitle = _searchParamsSummary(searchParams);
-
     return Scaffold(
       backgroundColor: Colors.transparent,
       appBar: AppBar(
@@ -120,41 +44,31 @@ class _GroupChatView extends StatelessWidget {
         backgroundColor: Colors.transparent,
         surfaceTintColor: Colors.transparent,
         scrolledUnderElevation: 0,
-        title: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text('그룹채팅'),
-            if (subtitle != null) ...[
-              const SizedBox(height: 2),
-              Text(
-                subtitle,
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: Theme.of(
-                    context,
-                  ).colorScheme.onSurfaceVariant.withValues(alpha: 0.85),
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-            ],
-          ],
-        ),
+        title: const PageAppBarTitle('그룹채팅'),
         actions: [
+          IconButton(
+            onPressed: () => context.push(AppRoutePath.groupChatSearch),
+            tooltip: '검색',
+            icon: const Icon(Icons.search_rounded),
+          ),
           IconButton(
             onPressed: () => _handleCreateChatRoom(context),
             tooltip: '채팅방 만들기',
             icon: const Icon(Icons.add_rounded),
           ),
-          IconButton(
-            onPressed: () => _openFilterSheet(context),
-            tooltip: '필터',
-            isSelected: searchParams != GroupChatSearchParams.defaults,
-            selectedIcon: const Icon(Icons.filter_list_rounded),
-            icon: const Icon(Icons.filter_list_outlined),
-          ),
         ],
       ),
       body: _GroupChatList(
-        searchParams: searchParams,
+        header: Padding(
+          padding: const EdgeInsets.fromLTRB(20, 8, 20, 18),
+          child: Text(
+            '지금 참여할 수 있는 그룹채팅을 여기에서 살펴보세요.',
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+              height: 1.4,
+            ),
+          ),
+        ),
         onCreateChatRoom: () => _handleCreateChatRoom(context),
       ),
     );
@@ -162,12 +76,9 @@ class _GroupChatView extends StatelessWidget {
 }
 
 class _GroupChatList extends StatefulWidget {
-  const _GroupChatList({
-    required this.searchParams,
-    required this.onCreateChatRoom,
-  });
+  const _GroupChatList({required this.header, required this.onCreateChatRoom});
 
-  final GroupChatSearchParams searchParams;
+  final Widget header;
   final Future<void> Function() onCreateChatRoom;
 
   @override
@@ -213,8 +124,6 @@ class _GroupChatListState extends State<_GroupChatList> {
       CursorPaginationState<ChatRoom, String>
     >(
       builder: (context, state) {
-        final hostedOnly = widget.searchParams.hostedOnly;
-
         if (state.isLoading && !state.hasData) {
           return const Center(child: CircularProgressIndicator());
         }
@@ -231,27 +140,22 @@ class _GroupChatListState extends State<_GroupChatList> {
 
         if (!state.hasData) {
           return _GroupChatEmptyState(
-            title: hostedOnly ? '내가 만든 채팅방이 없어요' : '공개 그룹채팅이 없어요',
-            message: hostedOnly
-                ? '새 그룹채팅을 만들면 여기에 표시돼요.'
-                : '지금 입장할 수 있는 그룹채팅이 아직 없어요.',
-            icon: hostedOnly
-                ? Icons.add_comment_outlined
-                : Icons.groups_2_outlined,
-            actionLabel: hostedOnly ? '채팅방 만들기' : '새로고침',
-            onAction: hostedOnly ? widget.onCreateChatRoom : _refresh,
+            title: '공개 그룹채팅이 없어요',
+            message: '지금 입장할 수 있는 그룹채팅이 아직 없어요.',
+            icon: Icons.groups_2_outlined,
+            actionLabel: '새로고침',
+            onAction: _refresh,
           );
         }
 
         return RefreshIndicator.adaptive(
           onRefresh: _refresh,
           child: CustomScrollView(
-            key: PageStorageKey(
-              hostedOnly ? 'my_group_chat_list' : 'group_chat_list',
-            ),
+            key: const PageStorageKey('group_chat_list'),
             controller: _scrollController,
             physics: const AlwaysScrollableScrollPhysics(),
             slivers: [
+              SliverToBoxAdapter(child: widget.header),
               SliverPadding(
                 padding: const EdgeInsets.fromLTRB(20, 0, 20, 120),
                 sliver: SliverList(
@@ -405,18 +309,6 @@ class _GroupChatRoomTile extends StatelessWidget {
               vertical: 8,
             ),
             onTap: () => _handleOpen(context),
-            leading: Container(
-              width: 44,
-              height: 44,
-              decoration: BoxDecoration(
-                color: colorScheme.primaryContainer,
-                borderRadius: BorderRadius.circular(14),
-              ),
-              child: Icon(
-                _iconForRoom(room),
-                color: colorScheme.onPrimaryContainer,
-              ),
-            ),
             title: Text(
               room.title ?? 'Untitled room',
               maxLines: 1,
@@ -438,27 +330,24 @@ class _GroupChatRoomTile extends StatelessWidget {
               ),
             ),
             trailing: _canManageRoom
-                ? PopupMenuButton<_GroupChatRoomAction>(
-                    tooltip: '더보기',
-                    onSelected: (action) {
-                      switch (action) {
-                        case _GroupChatRoomAction.modify:
-                          _handleModify(context);
-                        case _GroupChatRoomAction.delete:
-                          _handleDelete(context);
-                      }
-                    },
-                    itemBuilder: (context) => const [
-                      PopupMenuItem(
-                        value: _GroupChatRoomAction.modify,
-                        child: Text('수정'),
-                      ),
-                      PopupMenuItem(
-                        value: _GroupChatRoomAction.delete,
-                        child: Text('삭제'),
-                      ),
-                    ],
-                    icon: const Icon(Icons.more_vert),
+                ? SizedBox(
+                    width: 96,
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        IconButton(
+                          onPressed: () => _handleModify(context),
+                          tooltip: '수정',
+                          icon: const Icon(Icons.edit_outlined),
+                        ),
+                        IconButton(
+                          onPressed: () => _handleDelete(context),
+                          tooltip: '삭제',
+                          icon: const Icon(Icons.delete_outline_rounded),
+                        ),
+                      ],
+                    ),
                   )
                 : null,
           ),
@@ -612,20 +501,6 @@ class _GroupChatInlineError extends StatelessWidget {
   }
 }
 
-enum _GroupChatRoomAction { modify, delete }
-
-String? _searchParamsSummary(GroupChatSearchParams params) {
-  if (params == GroupChatSearchParams.defaults) {
-    return null;
-  }
-
-  if (params.hostedOnly) {
-    return '내가 만든 채팅방만 보는 중';
-  }
-
-  return null;
-}
-
 String _statusLabel(ChatRoom room) {
   return switch (room.status.name) {
     'open' => '지금 참여 가능',
@@ -654,16 +529,4 @@ String _formatRelativeTime(DateTime dateTime) {
   }
 
   return '${dateTime.month}/${dateTime.day}';
-}
-
-IconData _iconForRoom(ChatRoom room) {
-  final primaryTag = room.tags.firstOrNull;
-
-  return switch (primaryTag) {
-    'coffee' => Icons.coffee_outlined,
-    'walking' => Icons.directions_walk_outlined,
-    'design' => Icons.palette_outlined,
-    'study' => Icons.menu_book_outlined,
-    _ => Icons.forum_outlined,
-  };
 }

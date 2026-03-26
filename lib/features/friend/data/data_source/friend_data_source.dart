@@ -1,5 +1,6 @@
 import 'package:domodachi/features/friend/data/model/friend_candidate_model.dart';
 import 'package:domodachi/features/friend/data/model/friend_model.dart';
+import 'package:domodachi/features/friend/data/model/friend_relationship_model.dart';
 import 'package:domodachi/features/friend/data/model/friend_request_model.dart';
 
 abstract interface class FriendDataSource {
@@ -13,6 +14,10 @@ abstract interface class FriendDataSource {
   Future<Iterable<FriendRequestModel>> fetchSentFriendRequests({
     int limit = 20,
     String? cursor,
+  });
+
+  Future<Iterable<FriendRelationshipModel>> fetchFriendRelationships({
+    required List<String> userIds,
   });
 
   Future<Iterable<FriendCandidateModel>> searchFriendProfiles({

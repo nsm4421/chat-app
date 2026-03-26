@@ -13,6 +13,8 @@ import 'package:domodachi/features/chat/presentation/cubit/room/chat_composer_cu
 import 'package:domodachi/features/chat/presentation/cubit/room/chat_composer_state.dart';
 import 'package:domodachi/features/chat/presentation/cubit/room/chat_room_session_cubit.dart';
 import 'package:domodachi/features/chat/presentation/cubit/room/chat_room_session_state.dart';
+import 'package:domodachi/features/chat/presentation/cubit/room/room_member_friend_cubit.dart';
+import 'package:domodachi/features/chat/presentation/cubit/room/room_member_friend_state.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get_it/get_it.dart';
@@ -126,6 +128,13 @@ class _JoinedGroupChatRoomScaffold extends StatelessWidget {
         BlocProvider(
           create: (_) => GetIt.instance<ChatComposerCubit>(param1: room.id),
         ),
+        BlocProvider(
+          create: (context) =>
+              GetIt.instance<RoomMemberFriendCubit>()..syncMembers(
+                members: context.read<ChatRoomSessionCubit>().state.members,
+                currentUserId: Supabase.instance.client.auth.currentUser?.id,
+              ),
+        ),
       ],
       child: _JoinedGroupChatRoomView(room: room),
     );
@@ -166,71 +175,184 @@ class _JoinedGroupChatRoomView extends StatelessWidget {
     return result ?? false;
   }
 
-  Future<void> _handlePrimaryAction(BuildContext context) async {
-    final sessionCubit = context.read<ChatRoomSessionCubit>();
-    final sessionState = sessionCubit.state;
-
-    if (sessionState.canDeleteRoom) {
-      final confirmed = await _showDeleteConfirmDialog(
-        context,
-        sessionState.room ?? room,
-      );
-      if (!confirmed || !context.mounted) {
-        return;
-      }
-
-      final deleted = await sessionCubit.deleteRoom();
-      if (deleted && context.mounted) {
-        context.pop(true);
-      }
-      return;
-    }
-
-    if (!sessionState.canLeave) {
-      return;
-    }
-
-    final left = await sessionCubit.leave();
-    if (left && context.mounted) {
-      context.pop();
-    }
-  }
-
-  Future<void> _showRoomInfoDialog(
+  Future<void> _showRoomInfoBottomSheet(
     BuildContext context,
     ChatRoom room,
-    int memberCount,
+    ChatRoomSessionState sessionState,
+    ChatMessageListState messageState,
   ) {
-    return showDialog<void>(
+    final roomMemberFriendCubit = context.read<RoomMemberFriendCubit>();
+    final sortedMembers = [...sessionState.members]
+      ..sort((a, b) {
+        if (a.isHost != b.isHost) {
+          return a.isHost ? -1 : 1;
+        }
+
+        final aIndex = a.anonymousIndex ?? 1 << 30;
+        final bIndex = b.anonymousIndex ?? 1 << 30;
+        return aIndex.compareTo(bIndex);
+      });
+    final latestMessageByUserId = _buildLatestMessageByUserId(
+      messageState.items,
+    );
+    final onlineUserIds = sessionState.presences
+        .map((presence) => presence.userId)
+        .toSet();
+
+    return showModalBottomSheet<void>(
       context: context,
-      builder: (dialogContext) {
-        return AlertDialog(
-          title: Text(room.title ?? 'Untitled room'),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                (room.description ?? '').trim().isEmpty
-                    ? '익명 그룹채팅'
-                    : room.description!,
+      showDragHandle: true,
+      isScrollControlled: true,
+      builder: (sheetContext) {
+        final theme = Theme.of(sheetContext);
+        final description = (room.description ?? '').trim();
+
+        return BlocProvider.value(
+          value: roomMemberFriendCubit,
+          child: SafeArea(
+            child: FractionallySizedBox(
+              heightFactor: 0.82,
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      room.title ?? 'Untitled room',
+                      style: theme.textTheme.headlineSmall?.copyWith(
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      description.isEmpty ? '익명 그룹채팅' : description,
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        color: theme.colorScheme.onSurfaceVariant,
+                        height: 1.4,
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+                    Row(
+                      children: [
+                        Text(
+                          '멤버',
+                          style: theme.textTheme.titleMedium?.copyWith(
+                            fontWeight: FontWeight.w800,
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          '(${sortedMembers.length}/${room.maxParticipants})',
+                          style: theme.textTheme.titleSmall?.copyWith(
+                            color: theme.colorScheme.onSurfaceVariant,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+                    Expanded(
+                      child:
+                          BlocBuilder<
+                            RoomMemberFriendCubit,
+                            RoomMemberFriendState
+                          >(
+                            builder: (context, friendState) {
+                              return ListView.separated(
+                                itemCount: sortedMembers.length,
+                                separatorBuilder: (_, __) =>
+                                    const SizedBox(height: 10),
+                                itemBuilder: (context, index) {
+                                  final member = sortedMembers[index];
+                                  final latestMessage =
+                                      latestMessageByUserId[member.userId];
+                                  final isOnline = onlineUserIds.contains(
+                                    member.userId,
+                                  );
+                                  return _RoomMemberTile(
+                                    member: member,
+                                    fallbackIndex: index + 1,
+                                    latestMessage: latestMessage,
+                                    isOnline: isOnline,
+                                    relation:
+                                        friendState.relations[member.userId],
+                                    isProcessing: friendState.processingUserIds
+                                        .contains(member.userId),
+                                  );
+                                },
+                              );
+                            },
+                          ),
+                    ),
+                    const SizedBox(height: 16),
+                    SizedBox(
+                      width: double.infinity,
+                      child: sessionState.canDeleteRoom
+                          ? FilledButton.icon(
+                              onPressed: sessionState.isLeaving
+                                  ? null
+                                  : () async {
+                                      final confirmed =
+                                          await _showDeleteConfirmDialog(
+                                            sheetContext,
+                                            sessionState.room ?? room,
+                                          );
+                                      if (!confirmed || !sheetContext.mounted) {
+                                        return;
+                                      }
+
+                                      final deleted = await sheetContext
+                                          .read<ChatRoomSessionCubit>()
+                                          .deleteRoom();
+                                      if (deleted && sheetContext.mounted) {
+                                        sheetContext.pop();
+                                        context.pop(true);
+                                      }
+                                    },
+                              icon: const Icon(Icons.delete_outline_rounded),
+                              label: const Text('채팅방 삭제'),
+                            )
+                          : OutlinedButton.icon(
+                              onPressed:
+                                  sessionState.canLeave &&
+                                      !sessionState.isLeaving
+                                  ? () async {
+                                      final left = await sheetContext
+                                          .read<ChatRoomSessionCubit>()
+                                          .leave();
+                                      if (left && sheetContext.mounted) {
+                                        sheetContext.pop();
+                                        context.pop();
+                                      }
+                                    }
+                                  : null,
+                              icon: const Icon(Icons.logout_rounded),
+                              label: const Text('채팅방 나가기'),
+                            ),
+                    ),
+                  ],
+                ),
               ),
-              const SizedBox(height: 8),
-              Text(
-                '$memberCount명 참여 중',
-                style: Theme.of(dialogContext).textTheme.bodySmall,
-              ),
-            ],
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => dialogContext.pop(),
-              child: const Text('닫기'),
             ),
-          ],
+          ),
         );
       },
     );
+  }
+
+  Map<String, ChatMessage> _buildLatestMessageByUserId(
+    List<ChatMessage> messages,
+  ) {
+    final latestMessageByUserId = <String, ChatMessage>{};
+
+    for (final message in messages) {
+      final previous = latestMessageByUserId[message.senderId];
+      if (previous == null || message.createdAt.isAfter(previous.createdAt)) {
+        latestMessageByUserId[message.senderId] = message;
+      }
+    }
+
+    return latestMessageByUserId;
   }
 
   Future<void> _refreshTimeline(BuildContext context) async {
@@ -272,6 +394,16 @@ class _JoinedGroupChatRoomView extends StatelessWidget {
 
     return MultiBlocListener(
       listeners: [
+        BlocListener<ChatRoomSessionCubit, ChatRoomSessionState>(
+          listenWhen: (previous, current) =>
+              previous.members != current.members,
+          listener: (context, state) {
+            context.read<RoomMemberFriendCubit>().syncMembers(
+              members: state.members,
+              currentUserId: currentUserId,
+            );
+          },
+        ),
         BlocListener<ChatComposerCubit, ChatComposerState>(
           listenWhen: (previous, current) =>
               previous.errorMessage != current.errorMessage &&
@@ -310,6 +442,30 @@ class _JoinedGroupChatRoomView extends StatelessWidget {
             }
           },
         ),
+        BlocListener<RoomMemberFriendCubit, RoomMemberFriendState>(
+          listenWhen: (previous, current) =>
+              previous.errorMessage != current.errorMessage &&
+              current.errorMessage != null,
+          listener: (context, state) {
+            final messenger = ScaffoldMessenger.of(context);
+            messenger
+              ..hideCurrentSnackBar()
+              ..showSnackBar(SnackBar(content: Text(state.errorMessage!)));
+            context.read<RoomMemberFriendCubit>().clearFeedback();
+          },
+        ),
+        BlocListener<RoomMemberFriendCubit, RoomMemberFriendState>(
+          listenWhen: (previous, current) =>
+              previous.noticeMessage != current.noticeMessage &&
+              current.noticeMessage != null,
+          listener: (context, state) {
+            final messenger = ScaffoldMessenger.of(context);
+            messenger
+              ..hideCurrentSnackBar()
+              ..showSnackBar(SnackBar(content: Text(state.noticeMessage!)));
+            context.read<RoomMemberFriendCubit>().clearFeedback();
+          },
+        ),
       ],
       child: Scaffold(
         appBar: AppBar(
@@ -317,51 +473,39 @@ class _JoinedGroupChatRoomView extends StatelessWidget {
           title: BlocBuilder<ChatRoomSessionCubit, ChatRoomSessionState>(
             builder: (context, state) {
               final currentRoom = state.room ?? room;
-              return GestureDetector(
-                behavior: HitTestBehavior.opaque,
-                onTap: () => _showRoomInfoDialog(
-                  context,
-                  currentRoom,
-                  state.members.length,
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      currentRoom.title ?? 'Untitled room',
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    currentRoom.title ?? 'Untitled room',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  Text(
+                    '${state.members.length}명 참여 중',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      fontWeight: FontWeight.w500,
                     ),
-                    Text(
-                      '${state.members.length}명 참여 중',
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: Theme.of(context).colorScheme.onSurfaceVariant,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  ],
-                ),
+                  ),
+                ],
               );
             },
           ),
           actions: [
             BlocBuilder<ChatRoomSessionCubit, ChatRoomSessionState>(
-              builder: (context, state) {
-                final isHost = (state.room ?? room).isHost;
-                return IconButton(
-                  tooltip: isHost ? '삭제' : '나가기',
-                  onPressed: state.isLeaving
-                      ? null
-                      : () => _handlePrimaryAction(context),
-                  icon: Icon(
-                    isHost
-                        ? Icons.delete_outline_rounded
-                        : Icons.logout_rounded,
-                  ),
-                );
-              },
+              builder: (context, state) => IconButton(
+                tooltip: '멤버 보기',
+                onPressed: () => _showRoomInfoBottomSheet(
+                  context,
+                  state.room ?? room,
+                  state,
+                  context.read<ChatMessageListBloc>().state,
+                ),
+                icon: const Icon(Icons.people_alt_outlined),
+              ),
             ),
           ],
         ),
@@ -471,6 +615,186 @@ class _JoinedGroupChatRoomView extends StatelessWidget {
             const _ChatComposerBar(),
           ],
         ),
+      ),
+    );
+  }
+}
+
+class _RoomMemberTile extends StatelessWidget {
+  const _RoomMemberTile({
+    required this.member,
+    required this.fallbackIndex,
+    required this.latestMessage,
+    required this.isOnline,
+    required this.relation,
+    required this.isProcessing,
+  });
+
+  final ChatRoomMember member;
+  final int fallbackIndex;
+  final ChatMessage? latestMessage;
+  final bool isOnline;
+  final RoomMemberFriendRelation? relation;
+  final bool isProcessing;
+
+  String get _anonymousName => '익명 ${member.anonymousIndex ?? fallbackIndex}';
+
+  Future<void> _handleFriendAction(BuildContext context) async {
+    final currentRelation = relation;
+    if (currentRelation == null || isProcessing) {
+      return;
+    }
+
+    switch (currentRelation.status) {
+      case RoomMemberFriendStatus.canSendRequest:
+        await context.read<RoomMemberFriendCubit>().sendFriendRequest(
+          member: member,
+          anonymousName: _anonymousName,
+        );
+      case RoomMemberFriendStatus.requestReceived:
+        await context.read<RoomMemberFriendCubit>().acceptFriendRequest(
+          member: member,
+          anonymousName: _anonymousName,
+        );
+      case RoomMemberFriendStatus.self:
+      case RoomMemberFriendStatus.requestSent:
+      case RoomMemberFriendStatus.friend:
+        return;
+    }
+  }
+
+  Widget? _buildTrailing(BuildContext context) {
+    final currentRelation = relation;
+    if (currentRelation == null ||
+        currentRelation.status == RoomMemberFriendStatus.self) {
+      return null;
+    }
+
+    if (isProcessing) {
+      return const SizedBox.square(
+        dimension: 40,
+        child: Padding(
+          padding: EdgeInsets.all(10),
+          child: CircularProgressIndicator(strokeWidth: 2),
+        ),
+      );
+    }
+
+    return switch (currentRelation.status) {
+      RoomMemberFriendStatus.canSendRequest => IconButton.filledTonal(
+        onPressed: () => _handleFriendAction(context),
+        tooltip: '친구 요청 보내기',
+        icon: const Icon(Icons.person_add_alt_1_rounded),
+      ),
+      RoomMemberFriendStatus.requestReceived => IconButton.filled(
+        onPressed: () => _handleFriendAction(context),
+        tooltip: '친구 요청 수락',
+        icon: const Icon(Icons.how_to_reg_rounded),
+      ),
+      RoomMemberFriendStatus.requestSent => IconButton(
+        onPressed: null,
+        tooltip: '친구 요청 보냄',
+        icon: const Icon(Icons.schedule_send_rounded),
+      ),
+      RoomMemberFriendStatus.friend => IconButton(
+        onPressed: null,
+        tooltip: '이미 친구',
+        icon: const Icon(Icons.check_circle_rounded),
+      ),
+      RoomMemberFriendStatus.self => null,
+    };
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final subtitle = latestMessage?.content.trim().isNotEmpty == true
+        ? latestMessage!.content.trim()
+        : '아직 보낸 메시지가 없어요.';
+
+    return Container(
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surfaceContainerHighest,
+        borderRadius: BorderRadius.circular(24),
+      ),
+      child: ListTile(
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        leading: Container(
+          width: 44,
+          height: 44,
+          decoration: BoxDecoration(
+            color: theme.colorScheme.primaryContainer,
+            borderRadius: BorderRadius.circular(16),
+          ),
+          child: Center(
+            child: Text(
+              '${member.anonymousIndex ?? fallbackIndex}',
+              style: theme.textTheme.titleSmall?.copyWith(
+                fontWeight: FontWeight.w800,
+                color: theme.colorScheme.onPrimaryContainer,
+              ),
+            ),
+          ),
+        ),
+        title: Row(
+          children: [
+            Expanded(
+              child: Row(
+                children: [
+                  if (member.isHost) ...[
+                    Icon(
+                      Icons.workspace_premium_rounded,
+                      size: 18,
+                      color: theme.colorScheme.primary,
+                    ),
+                    const SizedBox(width: 6),
+                  ],
+                  Expanded(
+                    child: Text(
+                      _anonymousName,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: theme.textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            if (isOnline) ...[
+              const SizedBox(width: 8),
+              Container(
+                width: 8,
+                height: 8,
+                decoration: BoxDecoration(
+                  color: theme.colorScheme.primary,
+                  shape: BoxShape.circle,
+                ),
+              ),
+              const SizedBox(width: 6),
+              Text(
+                '온라인',
+                style: theme.textTheme.labelMedium?.copyWith(
+                  color: theme.colorScheme.primary,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ],
+          ],
+        ),
+        subtitle: Padding(
+          padding: const EdgeInsets.only(top: 6),
+          child: Text(
+            subtitle,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
+          ),
+        ),
+        trailing: _buildTrailing(context),
       ),
     );
   }
@@ -1064,7 +1388,9 @@ class _SystemTimelineEvent extends StatelessWidget {
           borderRadius: BorderRadius.circular(999),
         ),
         child: Text(
-          event.type == ChatRoomEventType.roomDeleted ? action : '$actor 님이 $action',
+          event.type == ChatRoomEventType.roomDeleted
+              ? action
+              : '$actor 님이 $action',
           style: theme.textTheme.labelLarge?.copyWith(
             color: colorScheme.onSurfaceVariant,
           ),

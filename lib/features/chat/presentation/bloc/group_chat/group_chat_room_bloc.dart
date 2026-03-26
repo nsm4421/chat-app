@@ -5,15 +5,14 @@ import 'package:domodachi/core/pagination/cursor_pagination_page.dart';
 import 'package:domodachi/features/chat/domain/entity/chat_room_event.dart';
 import 'package:domodachi/features/chat/domain/entity/chat_room.dart';
 import 'package:domodachi/features/chat/domain/use_case/chat_use_cases.dart';
-import 'package:domodachi/features/chat/presentation/bloc/group_chat/group_chat_search_params.dart';
 import 'package:injectable/injectable.dart';
 
 @injectable
 class GroupChatRoomBloc extends CursorPaginationBloc<ChatRoom, String> {
   GroupChatRoomBloc(this._chatUseCases) {
-    _deletedRoomSubscription = _chatUseCases.watchDeletedChatRoomEvents().listen(
-      _handleDeletedRoomEvent,
-    );
+    _deletedRoomSubscription = _chatUseCases
+        .watchDeletedChatRoomEvents()
+        .listen(_handleDeletedRoomEvent);
     init();
   }
 
@@ -22,28 +21,11 @@ class GroupChatRoomBloc extends CursorPaginationBloc<ChatRoom, String> {
   final ChatUseCases _chatUseCases;
   StreamSubscription<ChatRoomEvent>? _deletedRoomSubscription;
 
-  GroupChatSearchParams _searchParams = GroupChatSearchParams.defaults;
-
-  GroupChatSearchParams get searchParams => _searchParams;
-
   @override
   String get fallbackErrorMessage => '그룹채팅 목록을 불러오지 못했어요. 잠시 후 다시 시도해 주세요.';
 
   @override
   bool isSameItem(ChatRoom item, ChatRoom other) => item.id == other.id;
-
-  void updateSearchParams(GroupChatSearchParams nextParams) {
-    if (_searchParams == nextParams) {
-      return;
-    }
-
-    _searchParams = nextParams;
-    refresh();
-  }
-
-  void resetSearchParams() {
-    updateSearchParams(GroupChatSearchParams.defaults);
-  }
 
   void _handleDeletedRoomEvent(ChatRoomEvent event) {
     if (event.type != ChatRoomEventType.roomDeleted) {
@@ -63,17 +45,10 @@ class GroupChatRoomBloc extends CursorPaginationBloc<ChatRoom, String> {
   Future<CursorPaginationPage<ChatRoom, String>> fetchPage(
     String? cursor,
   ) async {
-    final items =
-        (_searchParams.hostedOnly
-                ? await _chatUseCases.fetchMyGroupChatRooms(
-                    limit: _pageSize,
-                    cursor: cursor,
-                  )
-                : await _chatUseCases.fetchDiscoverChatRooms(
-                    limit: _pageSize,
-                    cursor: cursor,
-                  ))
-            .toList(growable: false);
+    final items = (await _chatUseCases.fetchDiscoverChatRooms(
+      limit: _pageSize,
+      cursor: cursor,
+    )).toList(growable: false);
 
     final lastItem = items.isEmpty ? null : items.last;
     final nextCursor = (lastItem?.lastMessageAt ?? lastItem?.createdAt)

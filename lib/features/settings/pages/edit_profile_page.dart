@@ -2,6 +2,7 @@ import 'package:domodachi/core/extensions/num_extension.dart';
 import 'package:domodachi/core/extensions/string_extension.dart';
 import 'package:domodachi/core/widgets/debounce/debounced_buttons.dart';
 import 'package:domodachi/core/widgets/profile_avatar.dart';
+import 'package:domodachi/core/widgets/scroll_reveal_app_bar_scaffold.dart';
 import 'package:domodachi/features/auth/domain/validation/auth_input_validator.dart';
 import 'package:domodachi/features/auth/presentation/cubit/base/auth_request_state.dart';
 import 'package:domodachi/features/auth/presentation/cubit/profile_edit/profile_edit_cubit.dart';
@@ -194,10 +195,8 @@ class _EditProfileViewState extends State<_EditProfileView> {
               normalizedInput.isNotEmpty &&
               usernameValidation == null;
 
-          return Scaffold(
-            appBar: AppBar(
-              title: const Text('프로필 수정'),
-            ),
+          return ScrollRevealAppBarScaffold(
+            title: const Text('프로필 수정'),
             body: SafeArea(
               child: ListView(
                 padding: const EdgeInsets.fromLTRB(20, 16, 20, 32),

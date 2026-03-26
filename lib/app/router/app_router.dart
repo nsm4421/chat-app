@@ -12,6 +12,7 @@ import 'package:domodachi/features/chat/domain/entity/chat_room.dart';
 import 'package:domodachi/features/chat/presentation/pages/create/create_chat_room_page.dart';
 import 'package:domodachi/features/chat/presentation/pages/modify/modify_chat_room_page.dart';
 import 'package:domodachi/features/chat/presentation/pages/room/group_chat_room_page.dart';
+import 'package:domodachi/features/chat/presentation/pages/search/group_chat_search_page.dart';
 import 'package:domodachi/features/friend/presentation/pages/friend_hub_page.dart';
 import 'package:domodachi/features/home/home_page.dart';
 import 'package:domodachi/features/settings/settings_page.dart';
@@ -86,6 +87,10 @@ class AppRoute {
       GoRoute(
         path: AppRoutePath.createChatRoom,
         builder: (context, state) => const CreateChatRoomPage(),
+      ),
+      GoRoute(
+        path: AppRoutePath.groupChatSearch,
+        builder: (context, state) => const GroupChatSearchPage(),
       ),
       GoRoute(
         path: AppRoutePath.groupChatRoom,

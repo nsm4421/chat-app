@@ -3,6 +3,7 @@ import 'package:domodachi/features/friend/data/data_source/supabase_friend_data_
 import 'package:domodachi/features/friend/data/model/friend_candidate_model.dart';
 import 'package:domodachi/features/friend/data/model/friend_model.dart';
 import 'package:domodachi/features/friend/data/model/friend_profile_model.dart';
+import 'package:domodachi/features/friend/data/model/friend_relationship_model.dart';
 import 'package:domodachi/features/friend/data/model/friend_request_model.dart';
 import 'package:injectable/injectable.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -15,6 +16,7 @@ class SupabaseFriendDataSourceImpl
 
   static const _friendRequestsTable = 'friend_requests';
   static const _friendshipsTable = 'friendships';
+  static const _userAccountStateTable = 'user_account_state';
   static const _requestProfileColumns = 'id, username, avatar_url';
   static const _friendshipProfileColumns = 'id, username, avatar_url, bio';
 
@@ -46,16 +48,31 @@ class SupabaseFriendDataSourceImpl
         return const <FriendModel>[];
       }
 
-      return response
-          .map((row) {
-            final json = Map<String, dynamic>.from(row as Map);
+      final rows = response
+          .map((row) => Map<String, dynamic>.from(row as Map))
+          .toList(growable: false);
+      final friendIds = rows
+          .map((json) {
+            final userAId = json['user_a_id'] as String;
+            final userBId = json['user_b_id'] as String;
+            return userAId == currentUserId ? userBId : userAId;
+          })
+          .toSet()
+          .toList(growable: false);
+      final lastSeenAtByUserId = await _fetchLastSeenAtByUserId(friendIds);
+
+      return rows
+          .map((json) {
             final userA = FriendProfileModel.fromJson(
               Map<String, dynamic>.from(json['user_a'] as Map),
             );
             final userB = FriendProfileModel.fromJson(
               Map<String, dynamic>.from(json['user_b'] as Map),
             );
-            final profile = userA.id == currentUserId ? userB : userA;
+            final baseProfile = userA.id == currentUserId ? userB : userA;
+            final profile = baseProfile.copyWith(
+              lastSeenAt: lastSeenAtByUserId[baseProfile.id],
+            );
             return FriendModel(
               profile: profile,
               createdAt: DateTime.parse(json['created_at'] as String),
@@ -81,7 +98,8 @@ class SupabaseFriendDataSourceImpl
             'requester:profiles!friend_requests_requester_id_fkey($_requestProfileColumns), '
             'receiver:profiles!friend_requests_receiver_id_fkey($_requestProfileColumns)',
           )
-          .eq('receiver_id', currentUserId);
+          .eq('receiver_id', currentUserId)
+          .eq('status', 'pending');
 
       if (cursor != null) {
         query = query.lt('created_at', cursor);
@@ -111,7 +129,8 @@ class SupabaseFriendDataSourceImpl
             'requester:profiles!friend_requests_requester_id_fkey($_requestProfileColumns), '
             'receiver:profiles!friend_requests_receiver_id_fkey($_requestProfileColumns)',
           )
-          .eq('requester_id', currentUserId);
+          .eq('requester_id', currentUserId)
+          .eq('status', 'pending');
 
       if (cursor != null) {
         query = query.lt('created_at', cursor);
@@ -122,6 +141,96 @@ class SupabaseFriendDataSourceImpl
           .limit(limit);
 
       return _toFriendRequests(response);
+    });
+  }
+
+  @override
+  Future<Iterable<FriendRelationshipModel>> fetchFriendRelationships({
+    required List<String> userIds,
+  }) {
+    return guardFriendRequest(() async {
+      final currentUserId = requireCurrentUserId(_client);
+      final normalizedUserIds = userIds
+          .toSet()
+          .where((userId) => userId != currentUserId)
+          .toList(growable: false);
+
+      if (normalizedUserIds.isEmpty) {
+        return const <FriendRelationshipModel>[];
+      }
+
+      final relationships = <String, FriendRelationshipModel>{
+        for (final userId in normalizedUserIds)
+          userId: FriendRelationshipModel(userId: userId),
+      };
+
+      final friendshipsAsUserA = await _client
+          .from(_friendshipsTable)
+          .select('user_b_id')
+          .eq('user_a_id', currentUserId)
+          .inFilter('user_b_id', normalizedUserIds);
+      for (final row in friendshipsAsUserA) {
+        final userId = (row as Map)['user_b_id'] as String;
+        relationships[userId] = FriendRelationshipModel(
+          userId: userId,
+          isFriend: true,
+          sentRequestId: relationships[userId]?.sentRequestId,
+          receivedRequestId: relationships[userId]?.receivedRequestId,
+        );
+      }
+
+      final friendshipsAsUserB = await _client
+          .from(_friendshipsTable)
+          .select('user_a_id')
+          .eq('user_b_id', currentUserId)
+          .inFilter('user_a_id', normalizedUserIds);
+      for (final row in friendshipsAsUserB) {
+        final userId = (row as Map)['user_a_id'] as String;
+        relationships[userId] = FriendRelationshipModel(
+          userId: userId,
+          isFriend: true,
+          sentRequestId: relationships[userId]?.sentRequestId,
+          receivedRequestId: relationships[userId]?.receivedRequestId,
+        );
+      }
+
+      final sentRequests = await _client
+          .from(_friendRequestsTable)
+          .select('id, receiver_id')
+          .eq('requester_id', currentUserId)
+          .eq('status', 'pending')
+          .inFilter('receiver_id', normalizedUserIds);
+      for (final row in sentRequests) {
+        final json = Map<String, dynamic>.from(row as Map);
+        final userId = json['receiver_id'] as String;
+        final current = relationships[userId]!;
+        relationships[userId] = FriendRelationshipModel(
+          userId: userId,
+          isFriend: current.isFriend,
+          sentRequestId: json['id'] as String,
+          receivedRequestId: current.receivedRequestId,
+        );
+      }
+
+      final receivedRequests = await _client
+          .from(_friendRequestsTable)
+          .select('id, requester_id')
+          .eq('receiver_id', currentUserId)
+          .eq('status', 'pending')
+          .inFilter('requester_id', normalizedUserIds);
+      for (final row in receivedRequests) {
+        final json = Map<String, dynamic>.from(row as Map);
+        final userId = json['requester_id'] as String;
+        final current = relationships[userId]!;
+        relationships[userId] = FriendRelationshipModel(
+          userId: userId,
+          isFriend: current.isFriend,
+          sentRequestId: current.sentRequestId,
+          receivedRequestId: json['id'] as String,
+        );
+      }
+
+      return relationships.values.toList(growable: false);
     });
   }
 
@@ -244,5 +353,28 @@ class SupabaseFriendDataSourceImpl
           ),
         )
         .toList(growable: false);
+  }
+
+  Future<Map<String, DateTime?>> _fetchLastSeenAtByUserId(
+    List<String> userIds,
+  ) async {
+    if (userIds.isEmpty) {
+      return const <String, DateTime?>{};
+    }
+
+    final response = await _client
+        .from(_userAccountStateTable)
+        .select('user_id, last_seen_at')
+        .inFilter('user_id', userIds);
+
+    final result = <String, DateTime?>{};
+    for (final row in response) {
+      final json = Map<String, dynamic>.from(row as Map);
+      result[json['user_id'] as String] = json['last_seen_at'] == null
+          ? null
+          : DateTime.parse(json['last_seen_at'] as String);
+    }
+
+    return result;
   }
 }

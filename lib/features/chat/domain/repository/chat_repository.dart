@@ -23,7 +23,20 @@ abstract class ChatRepository {
     ChatRoomType? type,
   });
 
+  Future<List<ChatRoom>> searchDiscoverChatRooms({
+    required String query,
+    int limit = 20,
+  });
+
+  Future<List<String>> fetchRecentGroupChatSearchQueries();
+
+  Future<void> saveRecentGroupChatSearchQuery(String query);
+
+  Future<void> deleteRecentGroupChatSearchQuery(String query);
+
   Future<ChatRoom?> getChatRoom(String chatRoomId);
+
+  Future<ChatRoom> createOrGetPrivateChatRoom(String otherUserId);
 
   // Message reads
   Future<List<ChatMessage>> fetchChatMessages({

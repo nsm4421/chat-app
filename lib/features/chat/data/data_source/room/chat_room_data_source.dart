@@ -13,7 +13,17 @@ abstract interface class ChatRoomDataSource {
     ChatRoomType? type,
   });
 
+  Future<Iterable<ChatRoomModel>> searchDiscoverChatRooms({
+    required String query,
+    int limit = 20,
+  });
+
   Future<ChatRoomModel?> getChatRoom(String chatRoomId);
+
+  /// Creates a private chat room with `otherUserId` or reuses the existing one.
+  Future<ChatRoomModel> createOrGetPrivateChatRoom({
+    required String otherUserId,
+  });
 
   Future<ChatRoomModel> createChatRoom({
     required ChatRoomStatus status,

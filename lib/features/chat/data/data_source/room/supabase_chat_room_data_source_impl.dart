@@ -14,6 +14,8 @@ class SupabaseChatRoomDataSourceImpl
 
   static const _chatRoomsTable = 'chat_rooms';
   static const _chatRoomOverviewView = 'chat_room_overview';
+  static const _createOrGetPrivateChatRoomRpc =
+      'create_or_get_private_chat_room';
   static const _roomColumns =
       'id, created_by, type, title, description, tags, '
       'max_participants, status, is_public, last_message_at, created_at, updated_at, '
@@ -82,6 +84,68 @@ class SupabaseChatRoomDataSourceImpl
   }
 
   @override
+  Future<Iterable<ChatRoomModel>> searchDiscoverChatRooms({
+    required String query,
+    int limit = 20,
+  }) {
+    return guardChatRequest(() async {
+      final normalizedQuery = query.trim().replaceFirst(RegExp(r'^#'), '');
+      if (normalizedQuery.length < 2) {
+        return const <ChatRoomModel>[];
+      }
+
+      final titleResponse = await _client
+          .from(_chatRoomOverviewView)
+          .select(_roomColumns)
+          .eq('type', ChatRoomType.group.name)
+          .eq('is_public', true)
+          .inFilter('status', [
+            ChatRoomStatus.open.name,
+            ChatRoomStatus.full.name,
+          ])
+          .ilike('title', '%$normalizedQuery%')
+          .order('last_message_at', ascending: false, nullsFirst: false)
+          .order('created_at', ascending: false)
+          .limit(limit);
+
+      final roomsById = <String, ChatRoomModel>{
+        for (final room in toChatRooms(titleResponse)) room.id: room,
+      };
+
+      final tagResponse = await _client
+          .from(_chatRoomOverviewView)
+          .select(_roomColumns)
+          .eq('type', ChatRoomType.group.name)
+          .eq('is_public', true)
+          .inFilter('status', [
+            ChatRoomStatus.open.name,
+            ChatRoomStatus.full.name,
+          ])
+          .contains('tags', [normalizedQuery])
+          .order('last_message_at', ascending: false, nullsFirst: false)
+          .order('created_at', ascending: false)
+          .limit(limit);
+
+      for (final room in toChatRooms(tagResponse)) {
+        roomsById[room.id] = room;
+      }
+
+      final rooms = roomsById.values.toList(growable: false);
+      rooms.sort((a, b) {
+        final aTime = a.lastMessageAt ?? a.createdAt;
+        final bTime = b.lastMessageAt ?? b.createdAt;
+        return bTime.compareTo(aTime);
+      });
+
+      if (rooms.length <= limit) {
+        return rooms;
+      }
+
+      return rooms.take(limit).toList(growable: false);
+    });
+  }
+
+  @override
   Future<ChatRoomModel?> getChatRoom(String chatRoomId) {
     return guardChatRequest(() async {
       final response = await _client
@@ -95,6 +159,32 @@ class SupabaseChatRoomDataSourceImpl
       }
 
       return ChatRoomModel.fromJson(Map<String, dynamic>.from(response as Map));
+    });
+  }
+
+  @override
+  Future<ChatRoomModel> createOrGetPrivateChatRoom({
+    required String otherUserId,
+  }) {
+    return guardChatRequest(() async {
+      requireCurrentUserId(_client);
+
+      final response = await _client.rpc(
+        _createOrGetPrivateChatRoomRpc,
+        params: {'other_user_id': otherUserId},
+      );
+
+      final chatRoomId = response as String?;
+      if (chatRoomId == null || chatRoomId.isEmpty) {
+        throw const ChatDataException('DM 채팅방을 열지 못했어요.');
+      }
+
+      final room = await getChatRoom(chatRoomId);
+      if (room == null) {
+        throw const ChatDataException('DM 채팅방 정보를 불러오지 못했어요.');
+      }
+
+      return room;
     });
   }
 

@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:domodachi/features/chat/core/value_objects/chat_room_enums.dart';
 import 'package:domodachi/features/chat/data/data_source/event/chat_room_event_data_source.dart';
 import 'package:domodachi/features/chat/data/data_source/local/chat_room_draft_local_data_source.dart';
+import 'package:domodachi/features/chat/data/data_source/local/group_chat_search_local_data_source.dart';
 import 'package:domodachi/features/chat/data/data_source/message/chat_message_data_source.dart';
 import 'package:domodachi/features/chat/data/data_source/member/chat_room_member_data_source.dart';
 import 'package:domodachi/features/chat/data/data_source/presence/chat_room_presence_data_source.dart';
@@ -43,6 +44,7 @@ class ChatRepositoryImpl
   ChatRepositoryImpl(
     this._chatRoomDataSource,
     this._chatRoomDraftLocalDataSource,
+    this._groupChatSearchLocalDataSource,
     this._chatRoomEventDataSource,
     this._chatMessageDataSource,
     this._chatRoomPresenceDataSource,
@@ -53,6 +55,8 @@ class ChatRepositoryImpl
   final ChatRoomDataSource _chatRoomDataSource;
   @override
   final ChatRoomDraftLocalDataSource _chatRoomDraftLocalDataSource;
+  @override
+  final GroupChatSearchLocalDataSource _groupChatSearchLocalDataSource;
   @override
   final ChatRoomEventDataSource _chatRoomEventDataSource;
   @override

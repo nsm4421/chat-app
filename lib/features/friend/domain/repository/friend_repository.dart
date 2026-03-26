@@ -1,5 +1,6 @@
 import 'package:domodachi/features/friend/domain/entity/friend.dart';
 import 'package:domodachi/features/friend/domain/entity/friend_candidate.dart';
+import 'package:domodachi/features/friend/domain/entity/friend_relationship.dart';
 import 'package:domodachi/features/friend/domain/entity/friend_request.dart';
 
 abstract class FriendRepository {
@@ -13,6 +14,10 @@ abstract class FriendRepository {
   Future<List<FriendRequest>> fetchSentFriendRequests({
     int limit = 20,
     String? cursor,
+  });
+
+  Future<List<FriendRelationship>> fetchFriendRelationships({
+    required List<String> userIds,
   });
 
   Future<List<FriendCandidate>> searchFriendProfiles({

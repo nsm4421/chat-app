@@ -10,6 +10,7 @@ abstract final class AppRoutePath {
   static const home = '/';
   static const friends = '/friends';
   static const settings = '/settings';
+  static const groupChatSearch = '/chat/search';
   static const groupChatRoomRoot = '/chat/room';
   static const groupChatRoom = '$groupChatRoomRoot/:$chatRoomIdParam';
   static const createChatRoom = '/chat/create';

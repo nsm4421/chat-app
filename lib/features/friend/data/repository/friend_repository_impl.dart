@@ -1,8 +1,10 @@
 import 'package:domodachi/features/friend/data/data_source/friend_data_source.dart';
 import 'package:domodachi/features/friend/data/mapper/friend_mapper.dart';
+import 'package:domodachi/features/friend/data/mapper/friend_relationship_mapper.dart';
 import 'package:domodachi/features/friend/data/repository/friend_repository_error_handler.dart';
 import 'package:domodachi/features/friend/domain/entity/friend.dart';
 import 'package:domodachi/features/friend/domain/entity/friend_candidate.dart';
+import 'package:domodachi/features/friend/domain/entity/friend_relationship.dart';
 import 'package:domodachi/features/friend/domain/entity/friend_request.dart';
 import 'package:domodachi/features/friend/domain/repository/friend_repository.dart';
 import 'package:injectable/injectable.dart';
@@ -56,6 +58,20 @@ class FriendRepositoryImpl
           .map((item) => item.toFriendRequest())
           .toList(growable: false);
     }, fallbackMessage: '보낸 친구 요청을 불러오지 못했어요. 잠시 후 다시 시도해 주세요.');
+  }
+
+  @override
+  Future<List<FriendRelationship>> fetchFriendRelationships({
+    required List<String> userIds,
+  }) async {
+    return guardFriendRequest(() async {
+      final items = await _friendDataSource.fetchFriendRelationships(
+        userIds: userIds,
+      );
+      return items
+          .map((item) => item.toFriendRelationship())
+          .toList(growable: false);
+    }, fallbackMessage: '친구 상태를 불러오지 못했어요. 잠시 후 다시 시도해 주세요.');
   }
 
   @override

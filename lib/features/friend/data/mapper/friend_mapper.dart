@@ -15,6 +15,7 @@ extension FriendProfileModelMapper on FriendProfileModel {
       username: username,
       avatarUrl: avatarUrl,
       bio: bio,
+      lastSeenAt: lastSeenAt,
     );
   }
 }

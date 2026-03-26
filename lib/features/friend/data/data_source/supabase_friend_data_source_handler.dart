@@ -27,6 +27,15 @@ mixin class SupabaseFriendDataSourceHandler {
   String mapFriendError(Object error) {
     final message = error.toString().toLowerCase();
 
+    if (message.contains('이미 친구인') || message.contains('already friends')) {
+      return '이미 친구인 사용자예요.';
+    }
+
+    if (message.contains('이미 친구 요청을 보낸') ||
+        message.contains('friend_requests_pending_unique_idx')) {
+      return '이미 친구 요청을 보낸 사용자예요.';
+    }
+
     if (message.contains('permission') ||
         message.contains('row-level security') ||
         message.contains('not allowed')) {

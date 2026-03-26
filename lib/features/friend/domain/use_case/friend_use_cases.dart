@@ -3,6 +3,7 @@ import 'package:domodachi/features/friend/domain/use_case/scenario/accept_friend
 import 'package:domodachi/features/friend/domain/use_case/scenario/cancel_friend_request_use_case.dart';
 import 'package:domodachi/features/friend/domain/use_case/scenario/decline_friend_request_use_case.dart';
 import 'package:domodachi/features/friend/domain/use_case/scenario/fetch_friends_use_case.dart';
+import 'package:domodachi/features/friend/domain/use_case/scenario/fetch_friend_relationships_use_case.dart';
 import 'package:domodachi/features/friend/domain/use_case/scenario/fetch_received_friend_requests_use_case.dart';
 import 'package:domodachi/features/friend/domain/use_case/scenario/fetch_sent_friend_requests_use_case.dart';
 import 'package:domodachi/features/friend/domain/use_case/scenario/remove_friend_use_case.dart';
@@ -19,6 +20,8 @@ class FriendUseCases {
   late final FetchFriendsUseCase _fetchFriends = FetchFriendsUseCase(
     _repository,
   );
+  late final FetchFriendRelationshipsUseCase _fetchFriendRelationships =
+      FetchFriendRelationshipsUseCase(_repository);
   late final FetchReceivedFriendRequestsUseCase _fetchReceivedFriendRequests =
       FetchReceivedFriendRequestsUseCase(_repository);
   late final FetchSentFriendRequestsUseCase _fetchSentFriendRequests =
@@ -38,6 +41,8 @@ class FriendUseCases {
   );
 
   FetchFriendsUseCase get fetchFriends => _fetchFriends;
+  FetchFriendRelationshipsUseCase get fetchFriendRelationships =>
+      _fetchFriendRelationships;
   FetchReceivedFriendRequestsUseCase get fetchReceivedFriendRequests =>
       _fetchReceivedFriendRequests;
   FetchSentFriendRequestsUseCase get fetchSentFriendRequests =>

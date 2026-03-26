@@ -1,6 +1,7 @@
 import 'package:domodachi/features/chat/core/value_objects/chat_room_enums.dart';
 import 'package:domodachi/features/chat/data/data_source/event/chat_room_event_data_source.dart';
 import 'package:domodachi/features/chat/data/data_source/local/chat_room_draft_local_data_source.dart';
+import 'package:domodachi/features/chat/data/data_source/local/group_chat_search_local_data_source.dart';
 import 'package:domodachi/features/chat/data/data_source/message/chat_message_data_source.dart';
 import 'package:domodachi/features/chat/data/data_source/member/chat_room_member_data_source.dart';
 import 'package:domodachi/features/chat/data/data_source/presence/chat_room_presence_data_source.dart';
@@ -19,6 +20,7 @@ import 'package:flutter_test/flutter_test.dart';
 void main() {
   late _FakeChatRoomDataSource chatRoomDataSource;
   late _FakeChatRoomDraftLocalDataSource chatRoomDraftLocalDataSource;
+  late _FakeGroupChatSearchLocalDataSource groupChatSearchLocalDataSource;
   late _FakeChatRoomEventDataSource chatRoomEventDataSource;
   late _FakeChatMessageDataSource chatMessageDataSource;
   late _FakeChatRoomPresenceDataSource chatRoomPresenceDataSource;
@@ -28,6 +30,7 @@ void main() {
   setUp(() {
     chatRoomDataSource = _FakeChatRoomDataSource();
     chatRoomDraftLocalDataSource = _FakeChatRoomDraftLocalDataSource();
+    groupChatSearchLocalDataSource = _FakeGroupChatSearchLocalDataSource();
     chatRoomEventDataSource = _FakeChatRoomEventDataSource();
     chatMessageDataSource = _FakeChatMessageDataSource();
     chatRoomPresenceDataSource = _FakeChatRoomPresenceDataSource();
@@ -35,6 +38,7 @@ void main() {
     repository = ChatRepositoryImpl(
       chatRoomDataSource,
       chatRoomDraftLocalDataSource,
+      groupChatSearchLocalDataSource,
       chatRoomEventDataSource,
       chatMessageDataSource,
       chatRoomPresenceDataSource,
@@ -78,6 +82,22 @@ void main() {
       expect(room.id, 'remote-room-id');
       expect(room.status, ChatRoomStatus.open);
     });
+  });
+
+  group('private chats', () {
+    test(
+      'creates or reuses a private chat room through room datasource',
+      () async {
+        final room = await repository.createOrGetPrivateChatRoom(
+          'friend-user-id',
+        );
+
+        expect(chatRoomDataSource.createOrGetPrivateChatRoomCallCount, 1);
+        expect(chatRoomDataSource.lastPrivateChatOtherUserId, 'friend-user-id');
+        expect(room.type, ChatRoomType.private);
+        expect(room.id, 'private-room-id');
+      },
+    );
   });
 
   group('messages', () {
@@ -139,11 +159,35 @@ void main() {
       expect(event.chatRoomId, 'room-id');
     });
   });
+
+  group('recent group chat searches', () {
+    test('stores and reads recent queries from local storage', () async {
+      await repository.saveRecentGroupChatSearchQuery('coffee');
+      await repository.saveRecentGroupChatSearchQuery('design');
+
+      final recentQueries = await repository
+          .fetchRecentGroupChatSearchQueries();
+
+      expect(recentQueries, ['design', 'coffee']);
+    });
+
+    test('deletes recent query from local storage', () async {
+      await repository.saveRecentGroupChatSearchQuery('coffee');
+      await repository.deleteRecentGroupChatSearchQuery('coffee');
+
+      final recentQueries = await repository
+          .fetchRecentGroupChatSearchQueries();
+
+      expect(recentQueries, isEmpty);
+    });
+  });
 }
 
 final class _FakeChatRoomDataSource implements ChatRoomDataSource {
   int createCallCount = 0;
+  int createOrGetPrivateChatRoomCallCount = 0;
   ChatRoomStatus? lastStatus;
+  String? lastPrivateChatOtherUserId;
 
   @override
   Future<ChatRoomModel> createChatRoom({
@@ -177,6 +221,31 @@ final class _FakeChatRoomDataSource implements ChatRoomDataSource {
   }
 
   @override
+  Future<ChatRoomModel> createOrGetPrivateChatRoom({
+    required String otherUserId,
+  }) async {
+    createOrGetPrivateChatRoomCallCount += 1;
+    lastPrivateChatOtherUserId = otherUserId;
+
+    return ChatRoomModel(
+      id: 'private-room-id',
+      createdBy: 'current-user-id',
+      type: ChatRoomType.private,
+      status: ChatRoomStatus.open,
+      title: null,
+      description: null,
+      tags: const [],
+      maxParticipants: 2,
+      isPublic: false,
+      createdAt: DateTime(2026, 3, 26, 12),
+      updatedAt: DateTime(2026, 3, 26, 12),
+      memberCount: 2,
+      isJoined: true,
+      isHost: true,
+    );
+  }
+
+  @override
   Future<void> softDeleteChatRoom(String chatRoomId) async {}
 
   @override
@@ -190,6 +259,12 @@ final class _FakeChatRoomDataSource implements ChatRoomDataSource {
     int limit = 20,
     String? cursor,
     ChatRoomType? type,
+  }) async => const [];
+
+  @override
+  Future<Iterable<ChatRoomModel>> searchDiscoverChatRooms({
+    required String query,
+    int limit = 20,
   }) async => const [];
 
   @override
@@ -224,6 +299,26 @@ final class _FakeChatRoomDraftLocalDataSource
   @override
   Future<void> saveDraft(ChatRoomDraftModel draft) async {
     savedDraft = draft;
+  }
+}
+
+final class _FakeGroupChatSearchLocalDataSource
+    implements GroupChatSearchLocalDataSource {
+  List<String> recentQueries = const <String>[];
+
+  @override
+  Future<List<String>> fetchRecentQueries() async => recentQueries;
+
+  @override
+  Future<void> saveRecentQuery(String query) async {
+    recentQueries = [query, ...recentQueries.where((item) => item != query)];
+  }
+
+  @override
+  Future<void> deleteRecentQuery(String query) async {
+    recentQueries = recentQueries
+        .where((item) => item != query)
+        .toList(growable: false);
   }
 }
 

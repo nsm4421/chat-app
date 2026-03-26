@@ -20,6 +20,7 @@ class FakeChatRepository implements ChatRepository {
   List<ChatRoomEvent> chatRoomEvents = const <ChatRoomEvent>[];
   List<ChatRoomMember> chatRoomMembers = const <ChatRoomMember>[];
   List<ChatRoomPresence> chatRoomPresences = const <ChatRoomPresence>[];
+  List<String> recentGroupChatSearchQueries = const <String>[];
   Future<ChatRoom?> Function(String chatRoomId)? getChatRoomHandler;
   Stream<ChatMessage> Function(String chatRoomId)? watchNewChatMessagesHandler;
   Stream<ChatRoomEvent> Function(String chatRoomId)?
@@ -33,6 +34,8 @@ class FakeChatRepository implements ChatRepository {
   watchChatRoomPresenceEventsHandler;
   Future<void> Function(String chatRoomId)? joinChatRoomHandler;
   Future<void> Function(String chatRoomId)? leaveChatRoomHandler;
+  Future<ChatRoom> Function(String otherUserId)?
+  createOrGetPrivateChatRoomHandler;
   Future<void> Function(String chatRoomId)? enterChatRoomPresenceHandler;
   Future<void> Function(String chatRoomId)? leaveChatRoomPresenceHandler;
   Future<ChatMessage> Function({
@@ -90,6 +93,31 @@ class FakeChatRepository implements ChatRepository {
   }) async => const [];
 
   @override
+  Future<List<ChatRoom>> searchDiscoverChatRooms({
+    required String query,
+    int limit = 20,
+  }) async => const [];
+
+  @override
+  Future<List<String>> fetchRecentGroupChatSearchQueries() async =>
+      recentGroupChatSearchQueries;
+
+  @override
+  Future<void> saveRecentGroupChatSearchQuery(String query) async {
+    recentGroupChatSearchQueries = [
+      query,
+      ...recentGroupChatSearchQueries.where((item) => item != query),
+    ];
+  }
+
+  @override
+  Future<void> deleteRecentGroupChatSearchQuery(String query) async {
+    recentGroupChatSearchQueries = recentGroupChatSearchQueries
+        .where((item) => item != query)
+        .toList(growable: false);
+  }
+
+  @override
   Future<List<ChatMessage>> fetchChatMessages({
     required String chatRoomId,
     int limit = 50,
@@ -106,6 +134,11 @@ class FakeChatRepository implements ChatRepository {
   @override
   Future<ChatRoom?> getChatRoom(String chatRoomId) async {
     return getChatRoomHandler?.call(chatRoomId) ?? currentRoom;
+  }
+
+  @override
+  Future<ChatRoom> createOrGetPrivateChatRoom(String otherUserId) async {
+    return createOrGetPrivateChatRoomHandler!.call(otherUserId);
   }
 
   @override

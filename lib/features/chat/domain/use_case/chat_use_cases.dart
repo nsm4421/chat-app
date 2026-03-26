@@ -1,14 +1,17 @@
 import 'package:domodachi/features/chat/domain/repository/chat_repository.dart';
 import 'package:domodachi/features/chat/domain/use_case/scenario/enter_chat_room_presence_use_case.dart';
+import 'package:domodachi/features/chat/domain/use_case/scenario/create_or_get_private_chat_room_use_case.dart';
 import 'package:domodachi/features/chat/domain/use_case/scenario/create_remote_chat_room_use_case.dart';
 import 'package:domodachi/features/chat/domain/use_case/scenario/delete_chat_message_use_case.dart';
 import 'package:domodachi/features/chat/domain/use_case/scenario/delete_chat_room_use_case.dart';
+import 'package:domodachi/features/chat/domain/use_case/scenario/delete_recent_group_chat_search_query_use_case.dart';
 import 'package:domodachi/features/chat/domain/use_case/scenario/delete_draft_chat_room_use_case.dart';
 import 'package:domodachi/features/chat/domain/use_case/scenario/fetch_chat_room_events_use_case.dart';
 import 'package:domodachi/features/chat/domain/use_case/scenario/leave_chat_room_presence_use_case.dart';
 import 'package:domodachi/features/chat/domain/use_case/scenario/fetch_chat_messages_use_case.dart';
 import 'package:domodachi/features/chat/domain/use_case/scenario/fetch_chat_room_members_use_case.dart';
 import 'package:domodachi/features/chat/domain/use_case/scenario/fetch_discover_chat_rooms_use_case.dart';
+import 'package:domodachi/features/chat/domain/use_case/scenario/fetch_recent_group_chat_search_queries_use_case.dart';
 import 'package:domodachi/features/chat/domain/use_case/scenario/fetch_my_group_chat_rooms_use_case.dart';
 import 'package:domodachi/features/chat/domain/use_case/scenario/fetch_my_private_chat_rooms_use_case.dart';
 import 'package:domodachi/features/chat/domain/use_case/scenario/get_chat_room_member_use_case.dart';
@@ -17,6 +20,8 @@ import 'package:domodachi/features/chat/domain/use_case/scenario/get_draft_chat_
 import 'package:domodachi/features/chat/domain/use_case/scenario/get_chat_room_use_case.dart';
 import 'package:domodachi/features/chat/domain/use_case/scenario/is_chat_room_member_use_case.dart';
 import 'package:domodachi/features/chat/domain/use_case/scenario/save_draft_chat_room_use_case.dart';
+import 'package:domodachi/features/chat/domain/use_case/scenario/save_recent_group_chat_search_query_use_case.dart';
+import 'package:domodachi/features/chat/domain/use_case/scenario/search_group_chat_rooms_use_case.dart';
 import 'package:domodachi/features/chat/domain/use_case/scenario/send_chat_message_use_case.dart';
 import 'package:domodachi/features/chat/domain/use_case/scenario/update_chat_room_use_case.dart';
 import 'package:domodachi/features/chat/domain/use_case/scenario/watch_chat_room_presence_events_use_case.dart';
@@ -36,10 +41,26 @@ class ChatUseCases {
 
   late final FetchDiscoverChatRoomsUseCase _fetchDiscoverChatRooms =
       FetchDiscoverChatRoomsUseCase(_repository);
+  late final SearchGroupChatRoomsUseCase _searchGroupChatRooms =
+      SearchGroupChatRoomsUseCase(_repository);
+  late final FetchRecentGroupChatSearchQueriesUseCase
+  _fetchRecentGroupChatSearchQueries = FetchRecentGroupChatSearchQueriesUseCase(
+    _repository,
+  );
+  late final SaveRecentGroupChatSearchQueryUseCase
+  _saveRecentGroupChatSearchQuery = SaveRecentGroupChatSearchQueryUseCase(
+    _repository,
+  );
+  late final DeleteRecentGroupChatSearchQueryUseCase
+  _deleteRecentGroupChatSearchQuery = DeleteRecentGroupChatSearchQueryUseCase(
+    _repository,
+  );
   late final FetchMyGroupChatRoomsUseCase _fetchMyGroupChatRooms =
       FetchMyGroupChatRoomsUseCase(_repository);
   late final FetchMyPrivateChatRoomsUseCase _fetchMyPrivateChatRooms =
       FetchMyPrivateChatRoomsUseCase(_repository);
+  late final CreateOrGetPrivateChatRoomUseCase _createOrGetPrivateChatRoom =
+      CreateOrGetPrivateChatRoomUseCase(_repository);
   late final GetChatRoomUseCase _getChatRoom = GetChatRoomUseCase(_repository);
   late final WatchDeletedChatRoomEventsUseCase _watchDeletedChatRoomEvents =
       WatchDeletedChatRoomEventsUseCase(_repository);
@@ -97,6 +118,21 @@ class ChatUseCases {
   FetchDiscoverChatRoomsUseCase get fetchDiscoverChatRooms =>
       _fetchDiscoverChatRooms;
 
+  /// Searches public group chat rooms by title or hashtag.
+  SearchGroupChatRoomsUseCase get searchGroupChatRooms => _searchGroupChatRooms;
+
+  /// Loads recent group chat search queries from local storage.
+  FetchRecentGroupChatSearchQueriesUseCase
+  get fetchRecentGroupChatSearchQueries => _fetchRecentGroupChatSearchQueries;
+
+  /// Stores a successful group chat search query locally.
+  SaveRecentGroupChatSearchQueryUseCase get saveRecentGroupChatSearchQuery =>
+      _saveRecentGroupChatSearchQuery;
+
+  /// Removes a recent group chat search query from local storage.
+  DeleteRecentGroupChatSearchQueryUseCase
+  get deleteRecentGroupChatSearchQuery => _deleteRecentGroupChatSearchQuery;
+
   /// Loads joined group chat rooms, typically for "my group chats" views.
   FetchMyGroupChatRoomsUseCase get fetchMyGroupChatRooms =>
       _fetchMyGroupChatRooms;
@@ -104,6 +140,10 @@ class ChatUseCases {
   /// Loads joined private chats for inbox/private chat lists.
   FetchMyPrivateChatRoomsUseCase get fetchMyPrivateChatRooms =>
       _fetchMyPrivateChatRooms;
+
+  /// Opens a DM room with the given user, reusing the existing private room.
+  CreateOrGetPrivateChatRoomUseCase get createOrGetPrivateChatRoom =>
+      _createOrGetPrivateChatRoom;
 
   /// Fetches the latest snapshot of a single chat room.
   GetChatRoomUseCase get getChatRoom => _getChatRoom;

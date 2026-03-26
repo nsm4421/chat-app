@@ -18,6 +18,15 @@ mixin class FriendRepositoryErrorHandler {
   String mapFriendError(String rawMessage) {
     final message = rawMessage.toLowerCase();
 
+    if (message.contains('이미 친구인') || message.contains('already friends')) {
+      return '이미 친구인 사용자예요.';
+    }
+
+    if (message.contains('이미 친구 요청을 보낸') ||
+        message.contains('friend_requests_pending_unique_idx')) {
+      return '이미 친구 요청을 보낸 사용자예요.';
+    }
+
     if (message.contains('already') ||
         message.contains('duplicate') ||
         message.contains('unique')) {

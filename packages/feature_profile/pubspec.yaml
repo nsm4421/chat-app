@@ -1,0 +1,28 @@
+name: feature_profile
+description: Profile feature core for domodachi.
+version: 0.0.1
+publish_to: 'none'
+
+environment:
+  sdk: ^3.9.2
+  flutter: ">=1.17.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_bloc: ^9.1.1
+  get_it: ^9.2.1
+  injectable: ^2.7.1+4
+  freezed_annotation: ^3.1.0
+  shared:
+    path: ../shared
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^5.0.0
+  build_runner: ^2.13.0
+  injectable_generator: ^2.12.1
+  freezed: ^3.2.5
+
+flutter:

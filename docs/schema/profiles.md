@@ -33,8 +33,8 @@ Database constraints and client validation are intentionally aligned.
 - `bio`: max 160 characters
 
 Client-side source of truth:
-- [auth_input_validator.dart](/Users/n/Desktop/pg/lib/features/auth/domain/validation/auth_input_validator.dart)
-- [profile_field_rules.dart](/Users/n/Desktop/pg/lib/features/auth/domain/validation/profile_field_rules.dart)
+- [auth_input_validator.dart](/Users/n/Desktop/pg/packages/feature_auth/lib/domain/validation/auth_input_validator.dart)
+- [profile_field_rules.dart](/Users/n/Desktop/pg/packages/feature_auth/lib/domain/validation/profile_field_rules.dart)
 
 Database source of truth:
 - [20260319232610_create_profiles.sql](/Users/n/Desktop/pg/supabase/migrations/20260319232610_create_profiles.sql)

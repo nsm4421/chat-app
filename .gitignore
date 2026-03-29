@@ -17,6 +17,13 @@ pubspec.lock
 **.freezed.dart
 **.g.dart
 
+assets/
+apps/mobile/android
+apps/mobile/ios
+analysis_options.yaml
+CHANGELOG.md
+LICENSE
+
 # IntelliJ related
 *.iml
 *.ipr
@@ -37,6 +44,12 @@ pubspec.lock
 .pub/
 /build/
 /coverage/
+apps/**/.dart_tool/
+apps/**/build/
+apps/**/.flutter-plugins-dependencies
+packages/**/.dart_tool/
+packages/**/build/
+packages/**/.idea/
 
 # Symbolication related
 app.*.symbols
@@ -52,7 +65,7 @@ app.*.map.json
 # Project-local ignored directories and env files
 .env
 .env.local
-/assets/
+.env.*.local
 /android/
 /supabase/
 /ios

@@ -2,9 +2,6 @@ import 'package:feature_profile/domain/repository/profile_repository.dart';
 import 'package:feature_profile/domain/use_case/scenario/complete_profile_use_case.dart';
 import 'package:feature_profile/domain/use_case/scenario/is_username_available_use_case.dart';
 import 'package:feature_profile/domain/use_case/scenario/update_profile_use_case.dart';
-import 'package:injectable/injectable.dart';
-
-@lazySingleton
 class ProfileUseCases {
   ProfileUseCases(this._repository);
 

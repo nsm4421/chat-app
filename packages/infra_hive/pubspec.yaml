@@ -14,8 +14,6 @@ dependencies:
   injectable: ^2.7.1+4
   hive_ce: ^2.19.3
   hive_ce_flutter: ^2.3.4
-  feature_chat_core:
-    path: ../feature_chat_core
 
 dev_dependencies:
   flutter_test:

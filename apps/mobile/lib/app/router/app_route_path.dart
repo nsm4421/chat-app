@@ -1,5 +1,4 @@
 abstract final class AppRoutePath {
-  static const chatRoomIdParam = 'chatRoomId';
   static const splash = '/splash';
   static const auth = '/auth';
   static const signIn = '/auth/sign-in';
@@ -8,19 +7,12 @@ abstract final class AppRoutePath {
   static const profileSetup = '/auth/profile-setup';
   static const editProfile = '/settings/profile/edit';
   static const home = '/';
-  static const friends = '/friends';
   static const settings = '/settings';
-  static const groupChatSearch = '/chat/search';
-  static const groupChatRoomRoot = '/chat/room';
-  static const groupChatRoom = '$groupChatRoomRoot/:$chatRoomIdParam';
-  static const createChatRoom = '/chat/create';
-  static const modifyChatRoom = '/chat/modify';
-
-  static String chatRoomPath(String chatRoomId) =>
-      '$groupChatRoomRoot/$chatRoomId';
-
-  static String groupChatRoomPath(String chatRoomId) =>
-      chatRoomPath(chatRoomId);
+  static const mockReplaySetup = '/mock/replay/setup';
+  static const mockTradingSession = '/mock/trade/session';
+  static const mockSessionResult = '/mock/trade/result';
+  static const mockProofDetail = '/mock/proof/detail';
+  static const mockSeasonDetail = '/mock/season';
 
   static bool isAuthArea(String path) =>
       path == AppRoutePath.auth ||

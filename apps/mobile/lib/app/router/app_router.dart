@@ -6,21 +6,17 @@ import 'package:domodachi/features/auth/presentation/pages/profile_setup_page.da
 import 'package:domodachi/features/auth/presentation/pages/sign_in_page.dart';
 import 'package:domodachi/features/auth/presentation/pages/sign_up_page.dart';
 import 'package:domodachi/features/auth/presentation/pages/splash_page.dart';
+import 'package:domodachi/features/home/pages/mock_proof_detail_page.dart';
+import 'package:domodachi/features/home/pages/mock_replay_setup_page.dart';
+import 'package:domodachi/features/home/pages/mock_season_detail_page.dart';
+import 'package:domodachi/features/home/pages/mock_session_result_page.dart';
+import 'package:domodachi/features/home/pages/mock_trading_session_page.dart';
 import 'package:feature_auth/presentation/cubit/session/auth_session_cubit.dart';
 import 'package:feature_auth/presentation/cubit/session/auth_session_state.dart';
-import 'package:feature_chat_core/chat_core/domain/entity/chat_room.dart';
-import 'package:domodachi/features/chat/group_chat/presentation/pages/create/create_chat_room_page.dart';
-import 'package:domodachi/features/chat/group_chat/presentation/pages/modify/modify_chat_room_page.dart';
-import 'package:domodachi/features/chat/group_chat/presentation/pages/room/group_chat_room_page.dart';
-import 'package:domodachi/features/chat/group_chat/presentation/pages/search/group_chat_search_page.dart';
-import 'package:domodachi/features/friend/presentation/pages/friend_hub_page.dart';
 import 'package:domodachi/features/home/home_page.dart';
-import 'package:domodachi/features/settings/settings_page.dart';
 import 'package:domodachi/features/settings/pages/edit_profile_page.dart';
+import 'package:domodachi/features/settings/settings_page.dart';
 import 'package:go_router/go_router.dart';
-import 'package:injectable/injectable.dart';
-
-@lazySingleton
 class AppRoute {
   AppRoute(this._authSessionCubit);
 
@@ -81,27 +77,24 @@ class AppRoute {
         builder: (context, state) => const HomePage(),
       ),
       GoRoute(
-        path: AppRoutePath.friends,
-        builder: (context, state) => const FriendHubPage(),
+        path: AppRoutePath.mockReplaySetup,
+        builder: (context, state) => const MockReplaySetupPage(),
       ),
       GoRoute(
-        path: AppRoutePath.createChatRoom,
-        builder: (context, state) => const CreateChatRoomPage(),
+        path: AppRoutePath.mockTradingSession,
+        builder: (context, state) => const MockTradingSessionPage(),
       ),
       GoRoute(
-        path: AppRoutePath.groupChatSearch,
-        builder: (context, state) => const GroupChatSearchPage(),
+        path: AppRoutePath.mockSessionResult,
+        builder: (context, state) => const MockSessionResultPage(),
       ),
       GoRoute(
-        path: AppRoutePath.groupChatRoom,
-        builder: (context, state) => GroupChatRoomPage(
-          chatRoomId: state.pathParameters[AppRoutePath.chatRoomIdParam]!,
-        ),
+        path: AppRoutePath.mockProofDetail,
+        builder: (context, state) => const MockProofDetailPage(),
       ),
       GoRoute(
-        path: AppRoutePath.modifyChatRoom,
-        builder: (context, state) =>
-            ModifyChatRoomPage(room: state.extra! as ChatRoom),
+        path: AppRoutePath.mockSeasonDetail,
+        builder: (context, state) => const MockSeasonDetailPage(),
       ),
       GoRoute(
         path: AppRoutePath.settings,

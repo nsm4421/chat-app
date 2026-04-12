@@ -1,6 +1,6 @@
 # domodachi
 
-`domodachi`는 Flutter와 Supabase를 기반으로 만든 모바일 우선 소셜 앱입니다.
+`domodachi`는 Flutter와 Supabase를 기반으로 만든 모바일 우선 모의 코인 투자 앱입니다.
 현재 저장소는 앱, 기능 패키지, 문서, Supabase 설정을 분리한 workspace 구조로 관리합니다.
 
 ## 핵심 스택
@@ -54,8 +54,6 @@ flutter run
 ## Feature 문서
 
 - [Auth Feature](./apps/mobile/lib/features/auth/README.md)
-- [Chat Feature](./apps/mobile/lib/features/chat/README.md)
-- [Friend Feature](./apps/mobile/lib/features/friend/README.md)
 
 ## 자주 쓰는 명령어
 

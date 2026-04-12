@@ -20,7 +20,7 @@ class MainApp extends StatelessWidget {
       child: BlocBuilder<ThemeModeCubit, ThemeMode>(
         builder: (context, themeMode) {
           return MaterialApp.router(
-            title: 'Domodachi',
+            title: '코인왕',
             debugShowCheckedModeBanner: false,
             theme: AppTheme.light(),
             darkTheme: AppTheme.dark(),

@@ -6,7 +6,7 @@ void main() {
   testWidgets('renders auth landing actions', (WidgetTester tester) async {
     await tester.pumpWidget(const MaterialApp(home: AuthLandingPage()));
 
-    expect(find.text('Domodachi 시작하기'), findsOneWidget);
+    expect(find.text('코인왕 시작하기'), findsOneWidget);
     expect(find.text('이메일로 로그인'), findsOneWidget);
     expect(find.text('새 계정 만들기'), findsOneWidget);
   });

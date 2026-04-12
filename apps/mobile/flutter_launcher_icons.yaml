@@ -1,0 +1,14 @@
+flutter_launcher_icons:
+  android: true
+  ios: true
+  image_path_android: "../../assets/logo/coinking-app-icon-light.png"
+  image_path_ios: "../../assets/logo/coinking-app-icon-light.png"
+  min_sdk_android: 21
+  adaptive_icon_background: "#0E1E27"
+  adaptive_icon_foreground: "../../assets/logo/coinking-android-foreground.png"
+  adaptive_icon_foreground_inset: 10
+  adaptive_icon_monochrome: "../../assets/logo/coinking-android-monochrome.png"
+  remove_alpha_ios: true
+  background_color_ios: "#FFF9EE"
+  image_path_ios_dark_transparent: "../../assets/logo/coinking-app-icon-dark-transparent.png"
+  image_path_ios_tinted_grayscale: "../../assets/logo/coinking-app-icon-tinted.png"

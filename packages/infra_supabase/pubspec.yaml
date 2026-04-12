@@ -14,14 +14,6 @@ dependencies:
     path: ../feature_auth
   feature_profile:
     path: ../feature_profile
-  feature_chat_core:
-    path: ../feature_chat_core
-  feature_group_chat:
-    path: ../feature_group_chat
-  feature_private_chat:
-    path: ../feature_private_chat
-  feature_friend:
-    path: ../feature_friend
 
 dev_dependencies:
   build_runner: ^2.13.0

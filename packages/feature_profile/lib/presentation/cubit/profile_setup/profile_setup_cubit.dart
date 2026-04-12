@@ -1,8 +1,5 @@
 import 'package:feature_profile/domain/use_case/profile_use_cases.dart';
 import 'package:feature_profile/presentation/cubit/base/profile_request_cubit.dart';
-import 'package:injectable/injectable.dart';
-
-@injectable
 class ProfileSetupCubit extends ProfileRequestCubit {
   ProfileSetupCubit(this._profileUseCases);
 

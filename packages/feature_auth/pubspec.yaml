@@ -11,8 +11,6 @@ dependencies:
   flutter:
     sdk: flutter
   flutter_bloc: ^9.1.1
-  get_it: ^9.2.1
-  injectable: ^2.7.1+4
   freezed_annotation: ^3.1.0
   json_annotation: ^4.11.0
   shared:
@@ -23,7 +21,6 @@ dev_dependencies:
     sdk: flutter
   flutter_lints: ^5.0.0
   build_runner: ^2.13.0
-  injectable_generator: ^2.12.1
   freezed: ^3.2.5
   json_serializable: ^6.13.0
 

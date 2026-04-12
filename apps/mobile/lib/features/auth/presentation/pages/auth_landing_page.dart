@@ -9,8 +9,8 @@ class AuthLandingPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return AuthPageScaffold(
-      title: 'Domodachi 시작하기',
-      subtitle: '로그인하거나 새 계정을 만들어 친구 기반 경험을 시작하세요.',
+      title: '코인왕 시작하기',
+      subtitle: '가상 자산으로 과거 시세를 공략할 계정을 준비하세요.',
       footer: TextButton(
         onPressed: () => context.go(AppRoutePath.forgotPassword),
         child: const Text('비밀번호를 잊어버렸어요'),

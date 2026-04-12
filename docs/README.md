@@ -1,41 +1,29 @@
-# Documentation Guide
+# 모의 투자앱 문서
 
-이 디렉터리는 `domodachi` 프로젝트 문서를 역할별로 나눠 관리합니다.
+이 문서 세트는 기존 소셜/채팅 앱 기획을 폐기하고, `코인 모의 투자 게임` 중심 앱으로 방향을 전환한 기준 문서다.
 
-## 먼저 읽을 문서
+## 문서 구성
 
-1. [Getting Started](./getting-started.md)
-2. [Architecture Overview](./architecture/overview.md)
-3. [Testing Guide](./testing.md)
-4. [Supabase Overview](./supabase/overview.md)
-5. [Product Planning](./planning/README.md)
+- [제품 개요](/Users/n/Desktop/pg/docs/planning/product-overview.md)
+- [핵심 게임 루프](/Users/n/Desktop/pg/docs/planning/game-loop.md)
+- [커뮤니티와 랭킹](/Users/n/Desktop/pg/docs/planning/community-and-ranking.md)
+- [로드맵](/Users/n/Desktop/pg/docs/planning/roadmap.md)
+- [시스템 개요](/Users/n/Desktop/pg/docs/architecture/system-overview.md)
+- [도메인 모델 초안](/Users/n/Desktop/pg/docs/schema/domain-overview.md)
+- [Replay 투자 스키마](/Users/n/Desktop/pg/docs/schema/replay-investment-schema.md)
+- [테이블 레퍼런스](/Users/n/Desktop/pg/docs/schema/table-reference.md)
 
-## 언제 어떤 문서를 수정할지
+## 현재 제품 방향
 
-- 로컬 실행 절차, 환경 변수, codegen 흐름이 바뀌면 [getting-started.md](./getting-started.md)를 수정합니다.
-- 레이어 규칙, DI 방식, 라우팅 정책, 상태관리 원칙이 바뀌면 [architecture/overview.md](./architecture/overview.md)를 수정합니다.
-- 테스트 기준, 테스트 명령, 레이어별 테스트 전략이 바뀌면 [testing.md](./testing.md)를 수정합니다.
-- 테이블, RPC, migration 운영 방식, 앱과 Supabase의 책임 분리가 바뀌면 [supabase/overview.md](./supabase/overview.md)를 수정합니다.
-- 제품 방향, 익명성 정책, 사용자 흐름, 로드맵이 바뀌면 [planning/README.md](./planning/README.md)와 하위 기획 문서를 수정합니다.
-- 특정 도메인 기능의 세부 흐름이 바뀌면 feature README를 수정합니다.
+- 사용자는 가상의 자산으로 코인을 거래한다.
+- 거래 대상은 `플레이 기준 날짜에 대응하는 전 거래일 replay 데이터` 기반이다.
+- 사용자는 특정 날짜를 선택하고, 그 기준일에 대응하는 시장이 `실시간처럼 재생`되는 흐름 안에서 투자한다.
+- 플레이 목적은 수익률, 자산 증식, 시즌 성과 경쟁이다.
+- 장기적으로는 플레이 기록 인증, 시즌 랭킹, 커뮤니티 확장까지 포함한다.
 
-## Feature 문서
+## 핵심 원칙
 
-- [Auth Feature](../apps/mobile/lib/features/auth/README.md)
-- [Chat Feature](../apps/mobile/lib/features/chat/README.md)
-- [Friend Feature](../apps/mobile/lib/features/friend/README.md)
-
-## 기획 문서
-
-- [Product Planning](./planning/README.md)
-- [Product Overview](./planning/product-overview.md)
-- [Identity Policy](./planning/identity-policy.md)
-- [User Flows](./planning/user-flows.md)
-- [Roadmap](./planning/roadmap.md)
-
-## 문서 작성 원칙
-
-- 루트 `README`는 입문용으로 짧게 유지합니다.
-- 설계 배경보다 현재 동작과 규칙을 먼저 적습니다.
-- 추상 설명만 두지 말고 관련 코드 경로를 함께 링크합니다.
-- 중복 설명이 생기면 루트 문서에는 요약만 남기고 상세는 하위 문서로 이동합니다.
+- 실투자 앱처럼 보이지 않게 `게임성`과 `모의 투자` 성격을 명확히 한다.
+- 실제 실시간 시세보다 `전날 시장 replay 기반 시뮬레이션 플레이`를 우선한다.
+- 커뮤니티는 단순 채팅보다 `성과 공유`, `전략 비교`, `랭킹 경쟁`에 초점을 둔다.
+- 초기 버전은 기능 수보다 핵심 루프 완성도를 우선한다.

@@ -7,9 +7,6 @@ import 'package:feature_auth/domain/use_case/scenario/send_password_reset_email_
 import 'package:feature_auth/domain/use_case/scenario/sign_in_use_case.dart';
 import 'package:feature_auth/domain/use_case/scenario/sign_out_use_case.dart';
 import 'package:feature_auth/domain/use_case/scenario/sign_up_use_case.dart';
-import 'package:injectable/injectable.dart';
-
-@lazySingleton
 class AuthUseCases {
   final AuthRepository _repository;
 

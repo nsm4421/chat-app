@@ -13,8 +13,6 @@ dependencies:
   get_it: ^9.2.1
   injectable: ^2.7.1+4
   shared_preferences: ^2.5.3
-  feature_chat_core:
-    path: ../feature_chat_core
 
 dev_dependencies:
   flutter_test:

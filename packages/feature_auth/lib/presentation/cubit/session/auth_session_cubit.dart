@@ -4,9 +4,6 @@ import 'package:feature_auth/domain/entity/auth_user.dart';
 import 'package:feature_auth/domain/use_case/auth_use_cases.dart';
 import 'package:feature_auth/presentation/cubit/session/auth_session_state.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:injectable/injectable.dart';
-
-@lazySingleton
 class AuthSessionCubit extends Cubit<AuthSessionState> {
   AuthSessionCubit(this._authUseCases)
     : super(const AuthSessionState.unknown()) {

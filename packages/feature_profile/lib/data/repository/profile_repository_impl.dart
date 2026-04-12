@@ -3,9 +3,6 @@ import 'dart:typed_data';
 import 'package:feature_profile/data/data_source/profile_data_source.dart';
 import 'package:feature_profile/data/repository/profile_repository_error_handler.dart';
 import 'package:feature_profile/domain/repository/profile_repository.dart';
-import 'package:injectable/injectable.dart';
-
-@LazySingleton(as: ProfileRepository)
 class ProfileRepositoryImpl
     with ProfileRepositoryErrorHandler
     implements ProfileRepository {

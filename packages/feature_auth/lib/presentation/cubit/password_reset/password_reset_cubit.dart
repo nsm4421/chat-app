@@ -1,8 +1,5 @@
 import 'package:feature_auth/domain/use_case/auth_use_cases.dart';
 import 'package:feature_auth/presentation/cubit/base/auth_request_cubit.dart';
-import 'package:injectable/injectable.dart';
-
-@injectable
 class PasswordResetCubit extends AuthRequestCubit {
   PasswordResetCubit(this._authUseCases);
 

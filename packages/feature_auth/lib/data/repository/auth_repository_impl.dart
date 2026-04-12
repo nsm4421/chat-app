@@ -3,9 +3,6 @@ import 'package:feature_auth/data/mapper/auth_user_mapper.dart';
 import 'package:feature_auth/data/repository/auth_repository_error_handler.dart';
 import 'package:feature_auth/domain/entity/auth_user.dart';
 import 'package:feature_auth/domain/repository/auth_repository.dart';
-import 'package:injectable/injectable.dart';
-
-@LazySingleton(as: AuthRepository)
 class AuthRepositoryImpl
     with AuthRepositoryErrorHandler
     implements AuthRepository {

@@ -7,8 +7,6 @@ abstract final class HiveInitializer {
     await Hive.initFlutter('domodachi_cache');
 
     await _openBoxIfNeeded<dynamic>(HiveBoxName.appCache);
-    await _openBoxIfNeeded<dynamic>(HiveBoxName.discoverCache);
-    await _openBoxIfNeeded<dynamic>(HiveBoxName.chatCache);
 
     return Hive;
   }
